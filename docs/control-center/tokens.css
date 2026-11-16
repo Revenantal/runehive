@@ -1,0 +1,120 @@
+/*
+ * Control Center — design tokens as CSS custom properties.
+ * DRAFT (not final). Human-readable rationale: branding.md. Source of truth: design-tokens.json.
+ */
+
+@font-face {
+  font-family: 'RSPlain';
+  /* CC BY 4.0 via onlinewebfonts.com — show attribution on every page that loads it. */
+  src: url('/fonts/rs-plain-12.woff2') format('woff2'), url('/fonts/rs-plain-12.woff') format('woff');
+  font-display: swap;
+}
+
+:root {
+  /* Surfaces */
+  --cc-bg-app: #1A140E;
+  --cc-bg-sunken: #221A12;
+  --cc-bg-subbar: #241C14;
+  --cc-bg-well: #2A2119;
+  --cc-bg-panel: #3A2F23;
+  --cc-bg-panel-hi: #4A3B2B;
+  --cc-bg-selected: #6B5434;
+  --cc-bg-selected-row: #3F3224;
+  --cc-bg-stone: #4B4236;
+  --cc-bg-slot: #3A3127;
+  --cc-bg-slot-filled: #4A3E30;
+  --cc-bg-overlay: rgba(32, 24, 16, 0.9);
+  --cc-parchment: #E8DCB8;
+  --cc-parchment-light: #F4ECD3;
+
+  /* Lines */
+  --cc-line-outer: #120D08;
+  --cc-bevel-light: #6E5A3D;
+  --cc-bevel-dark: #231B12;
+  --cc-line-divider: #4C3E2C;
+  --cc-line-parchment: #6B5634;
+
+  /* Text */
+  --cc-text: #F0E2B6;
+  --cc-text-strong: #F6EACB;
+  --cc-text-on-selected: #FFF1C4;
+  --cc-text-secondary: #CDBF9C;
+  --cc-text-muted: #A89878;
+  --cc-ink: #2E2010;
+  --cc-ink-muted: #4A3820;
+  --cc-ink-label: #6B4A1E;
+  --cc-ink-link: #6B3E0E;
+  --cc-game-yellow: #FFE14D;
+
+  /* Accent */
+  --cc-gold: #D9B861;
+  --cc-gold-bright: #E3C26A;
+  --cc-gold-hover: #F6DFA0;
+  --cc-focus: #F2D35B;
+
+  /* Discovery status (always pair with a label) */
+  --cc-status-verified: #9FD07A;
+  --cc-status-observed: #8CC0EA;
+  --cc-status-hypothesis: #D2B8F0;
+  --cc-status-stale: #C4BBA8;
+  --cc-status-disproven: #F0A58C;
+
+  /* Discovery category */
+  --cc-cat-location: #C8B27A;
+  --cc-cat-shop: #D9A066;
+  --cc-cat-npc: #A9C3D9;
+  --cc-cat-item: #C9B3DE;
+  --cc-cat-procedure: #A9D1B8;
+
+  /* Goal kinds */
+  --cc-goal-master: #D9B861;
+  --cc-goal-hypothesis: #F2D35B;
+  --cc-goal-subgoal: #E8C09A;
+  --cc-goal-approach: #C9A0E8;
+  --cc-goal-execution: #8CC0EA;
+
+  /* Agent state */
+  --cc-online: #8FD16A;
+  --cc-degraded: #E0A040;
+
+  /* Type */
+  --cc-font-display: 'RSPlain', 'Pixelify Sans', ui-monospace, monospace;
+  --cc-font-body: 'Source Sans 3', system-ui, sans-serif;
+  --cc-font-mono: ui-monospace, monospace;
+
+  /* Effects */
+  --cc-bevel: inset 2px 2px 0 var(--cc-bevel-light), inset -2px -2px 0 var(--cc-bevel-dark);
+  --cc-stone-bevel: inset 2px 2px 0 #6B5E4A, inset -2px -2px 0 #2A231A;
+  --cc-float: 0 4px 10px rgba(0, 0, 0, 0.45);
+
+  /* Layout */
+  --cc-header-h: 64px;
+  --cc-subbar-h: 52px;
+  --cc-control-min-h: 40px;
+}
+
+/* Reference component recipes (illustrative, framework-agnostic) */
+.cc-display { font-family: var(--cc-font-display); font-weight: 400; font-synthesis: none; }
+.cc-panel { background: var(--cc-bg-panel); border: 2px solid var(--cc-line-outer); box-shadow: var(--cc-bevel); }
+.cc-parchment { background: var(--cc-parchment); color: var(--cc-ink); border: 2px solid var(--cc-line-parchment); box-shadow: inset 0 0 0 2px var(--cc-parchment-light); }
+.cc-stone {
+  background-color: var(--cc-bg-stone);
+  background-image: repeating-linear-gradient(45deg, rgba(0,0,0,.07) 0 2px, transparent 2px 7px),
+                    repeating-linear-gradient(-45deg, rgba(255,255,255,.03) 0 2px, transparent 2px 9px);
+  border: 2px solid var(--cc-line-outer);
+  box-shadow: var(--cc-stone-bevel);
+}
+.cc-btn {
+  font-family: var(--cc-font-display); font-synthesis: none; font-size: 16px;
+  color: var(--cc-text); background: var(--cc-bg-panel-hi);
+  border: 2px solid var(--cc-line-outer); box-shadow: inset 2px 2px 0 #7E6848, inset -2px -2px 0 #2A2016;
+  padding: 8px 14px; min-height: var(--cc-control-min-h); border-radius: 0;
+}
+.cc-btn[aria-pressed="true"], .cc-btn[aria-current="page"] { background: var(--cc-bg-selected); color: var(--cc-text-on-selected); }
+.cc-chip { font-family: var(--cc-font-display); font-size: 16px; line-height: 1.1; padding: 2px 8px; border: 1px solid var(--cc-line-outer); color: #120D08; white-space: nowrap; }
+.cc-game-number { font-family: var(--cc-font-display); color: var(--cc-game-yellow); text-shadow: 1px 1px 0 #000; }
+:focus-visible { outline: 2px solid var(--cc-focus); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

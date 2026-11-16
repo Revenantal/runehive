@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agent View</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&amp;family=Source+Sans+3:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1A140E}
+:focus-visible{outline:2px solid #F2D35B;outline-offset:2px}
+a{color:#E3C26A}a:hover{color:#F6DFA0}
+@font-face{font-family:'RSPlain';src:url(/_blob/af060588e34f85becf9b1d3a8834c275) format('woff2'),url(/_blob/95d0e990b32d4c3f66f2edf8bbce9dc8) format('woff');font-display:swap}
+.px{font-family:'RSPlain','Pixelify Sans',ui-monospace,monospace;font-synthesis:none}
+.panel{background:#3A2F23;border:2px solid #120D08;box-shadow:inset 2px 2px 0 #6E5A3D,inset -2px -2px 0 #231B12}
+.parch{background:#E8DCB8;color:#2E2010;border:2px solid #6B5634;box-shadow:inset 0 0 0 2px #F4ECD3}
+.btn{font-family:'RSPlain','Pixelify Sans',monospace;font-synthesis:none;font-size:16px;color:#F0E2B6;background:#4A3B2B;border:2px solid #120D08;box-shadow:inset 2px 2px 0 #7E6848,inset -2px -2px 0 #2A2016;padding:8px 14px;min-height:40px;cursor:pointer}
+.chip{font-family:'RSPlain','Pixelify Sans',monospace;font-synthesis:none;font-size:16px;line-height:1.1;padding:2px 8px;border:1px solid #120D08;white-space:nowrap}
+.slot{background:#2A2119;border:1px solid #120D08;box-shadow:inset 1px 1px 0 #15100B,inset -1px -1px 0 #4C3E2C;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.stone{background-color:#4B4236;background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.07) 0 2px,transparent 2px 7px),repeating-linear-gradient(-45deg,rgba(255,255,255,.03) 0 2px,transparent 2px 9px);border:2px solid #120D08;box-shadow:inset 2px 2px 0 #6B5E4A,inset -2px -2px 0 #2A231A}
+.ytxt{color:#FFE14D;text-shadow:1px 1px 0 #000}
+.ovl{background:rgba(32,24,16,.9);border:2px solid #120D08;box-shadow:inset 1px 1px 0 #6E5A3D}
+@media (min-width: 1000px){ .approw{height:calc(100vh - 64px)} }
+</style>
+</helmet>
+<div style="min-height: 100vh; box-sizing: border-box; background: #1A140E; color: #F0E2B6; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 16px; display: flex; flex-direction: column;">
+
+  <!-- Top bar -->
+  <header class="panel" style="position: relative; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; padding: 10px 20px; border-left: 0; border-right: 0; border-top: 0; box-sizing: border-box; min-height: 64px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="3" y="3" width="22" height="22" fill="#2A2119" stroke="#D9B861" stroke-width="2"></rect><path d="M8 19 L14 8 L20 19 Z" fill="none" stroke="#D9B861" stroke-width="2"></path></svg>
+      <span class="px" style="font-size: 24px; color: #D9B861;">Control Center</span>
+    </div>
+    <nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap;">
+      <a href="Main.dc.html" class="btn" style="text-decoration: none; background: #6B5434; color: #FFF1C4; display: inline-flex; align-items: center;" aria-current="page">Agent View</a>
+      <a href="Discovery.dc.html" class="btn" style="text-decoration: none; display: inline-flex; align-items: center;">Discoveries</a>
+      <a href="Goals.dc.html" class="btn" style="text-decoration: none; display: inline-flex; align-items: center;">Goals</a>
+    </nav>
+    <div style="flex: 1 1 40px;"></div>
+    <div class="px" style="font-size: 16px; color: #CDBF9C; display: flex; align-items: center; gap: 8px;">
+      <span style="width: 8px; height: 8px; background: #8FD16A; border-radius: 50%;"></span>Live · 3s ago
+    </div>
+    <div style="position: relative;">
+      <button class="btn" onClick="{{toggleMenu}}" aria-haspopup="listbox" aria-expanded="{{menuOpen}}" style="display: flex; align-items: center; gap: 10px; min-width: 200px; justify-content: space-between;">
+        <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: {{cur.dot}}; border: 1px solid #120D08;"></span><span style="color: #A89878;">Agent:</span> {{cur.name}}</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="#D9B861" stroke-width="2" fill="none"></path></svg>
+      </button>
+      <sc-if value="{{menuOpen}}" hint-placeholder-val="{{ false }}">
+        <ul role="listbox" aria-label="Select agent" class="panel" style="position: absolute; right: 0; top: calc(100% + 6px); width: 300px; margin: 0; padding: 6px; list-style: none; display: flex; flex-direction: column; gap: 4px; z-index: 40;">
+          <sc-for list="{{agents}}" as="a" hint-placeholder-count="3">
+            <li>
+              <button role="option" aria-selected="{{a.sel}}" onClick="{{a.pick}}" style="width: 100%; text-align: left; font: inherit; cursor: pointer; background: {{a.bg}}; color: #F0E2B6; border: 1px solid #120D08; padding: 8px 10px; display: flex; gap: 10px; align-items: flex-start; min-height: 44px;">
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: {{a.dot}}; border: 1px solid #120D08; margin-top: 5px; flex: none;"></span>
+                <span style="display: flex; flex-direction: column; gap: 2px;">
+                  <span class="px" style="font-size: 16px;">{{a.name}} <span style="color: #A89878; font-size: 13px;">· {{a.state}}</span></span>
+                  <span style="font-size: 13px; color: #CDBF9C;">{{a.activity}}</span>
+                </span>
+              </button>
+            </li>
+          </sc-for>
+        </ul>
+      </sc-if>
+    </div>
+  </header>
+
+  <div class="approw" style="flex: 1; display: flex; flex-wrap: wrap; min-height: 0;">
+
+    <!-- MAP -->
+    <section aria-label="World map" style="flex: 999 1 640px; min-width: 0; min-height: 560px; position: relative; overflow: hidden; background: #3E5A25; border-right: 2px solid #120D08;">
+      <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Map: agent walking east along the road toward an oak stand; bank and shops at the crossroads, river to the west, goblin field to the south-west, Bram and Wren nearby." style="position: absolute; inset: 0; width: 100%; height: 100%; display: block;">
+        <rect width="1200" height="800" fill="#4B6A2C"></rect>
+        <path d="M0 0 H360 C300 120 200 200 0 260 Z" fill="#3F5C25"></path>
+        <path d="M1200 0 V300 C1080 260 1000 120 1040 0 Z" fill="#3F5C25"></path>
+        <path d="M0 560 C120 540 260 580 340 800 H0 Z" fill="#5A7A33"></path>
+        <ellipse cx="1040" cy="660" rx="150" ry="90" fill="#3B6C9C" stroke="#2C5378" stroke-width="4"></ellipse>
+        <path d="M150 -20 C230 120 360 220 330 360 C300 500 380 620 340 820" stroke="#3B6C9C" stroke-width="44" fill="none"></path>
+        <path d="M0 420 H1200" stroke="#8C7350" stroke-width="20"></path>
+        <path d="M640 0 V800" stroke="#8C7350" stroke-width="20"></path>
+        <rect x="300" y="404" width="70" height="32" fill="#7A6040" stroke="#2A2119" stroke-width="3"></rect>
+        <g fill="#8E8270" stroke="#2A2119" stroke-width="4">
+          <rect x="560" y="200" width="160" height="96"></rect>
+          <rect x="680" y="320" width="90" height="72"></rect>
+          <rect x="520" y="450" width="96" height="70"></rect>
+          <rect x="680" y="460" width="70" height="60"></rect>
+        </g>
+        <g fill="#2C4A1A" stroke="#1C3010" stroke-width="3">
+          <circle cx="880" cy="350" r="20"></circle><circle cx="920" cy="330" r="20"></circle><circle cx="960" cy="360" r="20"></circle><circle cx="905" cy="385" r="20"></circle><circle cx="950" cy="400" r="20"></circle><circle cx="990" cy="335" r="20"></circle>
+          <circle cx="80" cy="80" r="18"></circle><circle cx="130" cy="120" r="18"></circle><circle cx="60" cy="160" r="18"></circle><circle cx="1100" cy="80" r="18"></circle><circle cx="1140" cy="150" r="18"></circle><circle cx="1080" cy="200" r="18"></circle>
+        </g>
+        <g fill="#F2D35B" stroke="#120D08" stroke-width="2">
+          <circle cx="120" cy="640" r="7"></circle><circle cx="180" cy="690" r="7"></circle><circle cx="230" cy="630" r="7"></circle><circle cx="610" cy="300" r="7"></circle><circle cx="730" cy="398" r="7"></circle>
+        </g>
+        <path d="M720 420 L800 420 L860 395 L890 372" stroke="#F2D35B" stroke-width="5" stroke-dasharray="12 9" fill="none"></path>
+        <rect x="892" y="320" width="5" height="50" fill="#120D08"></rect><path d="M897 320 L928 331 L897 342 Z" fill="#E0813A" stroke="#120D08" stroke-width="2"></path>
+        <circle cx="640" cy="248" r="16" fill="#D9B861" stroke="#120D08" stroke-width="3"></circle><text x="640" y="255" text-anchor="middle" font-family="RSPlain, Pixelify Sans, monospace" font-size="18" fill="#120D08">$</text>
+        <circle cx="725" cy="356" r="16" fill="#C9A0E8" stroke="#120D08" stroke-width="3"></circle><text x="725" y="362" text-anchor="middle" font-family="RSPlain, Pixelify Sans, monospace" font-size="16" fill="#120D08">S</text>
+        <circle cx="568" cy="485" r="16" fill="#C9A0E8" stroke="#120D08" stroke-width="3"></circle><text x="568" y="491" text-anchor="middle" font-family="RSPlain, Pixelify Sans, monospace" font-size="16" fill="#120D08">G</text>
+        <g font-family="RSPlain, Pixelify Sans, monospace" font-size="22" fill="#FFF1C4" stroke="#120D08" stroke-width="5" paint-order="stroke">
+          <text x="575" y="190">Bank</text>
+          <text x="780" y="345">Sword shop</text>
+          <text x="420" y="545">General store (unvisited)</text>
+          <text x="890" y="455">Oak stand</text>
+          <text x="80" y="600">Goblin field</text>
+          <text x="980" y="760">Lake</text>
+        </g>
+        <circle cx="560" cy="560" r="10" fill="#7FB3E6" stroke="#120D08" stroke-width="3"></circle>
+        <text x="576" y="566" font-family="RSPlain, Pixelify Sans, monospace" font-size="22" fill="#FFFFFF" stroke="#120D08" stroke-width="5" paint-order="stroke">Bram</text>
+        <circle cx="440" cy="250" r="10" fill="#7FB3E6" stroke="#120D08" stroke-width="3"></circle>
+        <text x="456" y="256" font-family="RSPlain, Pixelify Sans, monospace" font-size="22" fill="#FFFFFF" stroke="#120D08" stroke-width="5" paint-order="stroke">Wren</text>
+        <circle cx="720" cy="420" r="22" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.55"></circle>
+        <circle cx="720" cy="420" r="11" fill="#FFFFFF" stroke="#120D08" stroke-width="3"></circle>
+        <rect x="660" y="440" width="196" height="34" fill="#201810" stroke="#D9B861" stroke-width="2"></rect>
+        <text x="672" y="463" font-family="RSPlain, Pixelify Sans, monospace" font-size="16" fill="#FFF1C4">Walking to oak · 14 tiles</text>
+      </svg>
+
+      <!-- Overlay: what it's working on -->
+      <div class="ovl" style="position: absolute; top: 16px; left: 16px; width: min(360px, calc(100% - 100px)); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+          <span class="px" style="font-size: 16px; color: #D9B861;">{{cur.name}} is working on</span>
+          <button class="btn" onClick="{{openGoals}}" style="font-size: 16px; padding: 2px 8px; min-height: 28px;">Details</button>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: flex-start;">
+          <span class="chip" style="background: #D9B861; color: #120D08; font-size: 16px; min-width: 64px; text-align: center;">GOAL</span>
+          <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0;">
+            <span style="font-weight: 600;">Reach 60 Woodcutting</span>
+            <div style="height: 6px; background: #4C3E2C;"><div style="width: 38%; height: 100%; background: #8FD16A;"></div></div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: flex-start;">
+          <span class="chip" style="background: #C9A0E8; color: #120D08; font-size: 16px; min-width: 64px; text-align: center;">APPROACH</span>
+          <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+            <span style="font-weight: 600;">Chop oaks east of the bank</span>
+            <span style="font-size: 13px; color: #CDBF9C;">Next review in 6m 12s</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: flex-start;">
+          <span class="chip" style="background: #8CC0EA; color: #120D08; font-size: 16px; min-width: 64px; text-align: center;">NOW</span>
+          <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+            <span style="font-weight: 600;">Walking to oak tree</span>
+            <span style="font-size: 13px; color: #CDBF9C;">Inventory 21/28 · then bank</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map controls -->
+      <div style="position: absolute; top: 16px; right: 16px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end;">
+        <div class="ovl" role="img" aria-label="Compass, north up" style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border-color: #8A6E3A;"><span class="px" style="color: #E05A3A; font-size: 20px;">N</span></div>
+        <button class="btn" aria-label="Zoom in" style="width: 44px; padding: 0; font-size: 20px;">+</button>
+        <button class="btn" aria-label="Zoom out" style="width: 44px; padding: 0; font-size: 20px;">−</button>
+        <button class="btn" style="font-size: 16px; background: #6B5434; color: #FFF1C4;">Follow</button>
+      </div>
+
+      <!-- Legend -->
+      <div class="ovl" style="position: absolute; left: 16px; bottom: 16px; padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: #E0D2AC; max-width: calc(100% - 64px);">
+        <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #FFFFFF; border: 1px solid #120D08;"></span>This agent</span>
+        <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #7FB3E6; border: 1px solid #120D08;"></span>Other agents</span>
+        <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 16px; border-top: 3px dashed #F2D35B;"></span>Route</span>
+        <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; background: #E0813A; border: 1px solid #120D08;"></span>Destination</span>
+        <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #F2D35B; border: 1px solid #120D08;"></span>NPC</span>
+        <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #C9A0E8; border: 1px solid #120D08;"></span>Shop</span>
+      </div>
+      <div class="ovl px" style="position: absolute; right: 16px; bottom: 16px; padding: 6px 10px; font-size: 16px; color: #CDBF9C;">x 3204 · z 3241 · lvl 0</div>
+    </section>
+
+    <!-- SIDEBAR -->
+    <aside class="panel" aria-label="Agent details" style="flex: 1 1 380px; min-width: 0; min-height: 0; display: flex; flex-direction: column; border-top: 0; border-right: 0; border-bottom: 0;">
+      <div role="tablist" aria-label="Agent panels" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; padding: 10px 10px 0;">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
+          <button role="tab" aria-selected="{{t.sel}}" onClick="{{t.pick}}" class="btn" style="padding: 6px 2px; font-size: 16px; background: {{t.bg}}; color: {{t.fg}}; border-bottom-color: {{t.bb}};">{{t.label}}</button>
+        </sc-for>
+      </div>
+      <div role="tabpanel" style="flex: 1; min-height: 0; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+
+        <!-- Character -->
+        <sc-if value="{{isChar}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <h2 class="px" style="margin: 0; font-size: 20px; color: #D9B861;">{{cur.name}}</h2>
+              <span style="font-size: 14px; color: #CDBF9C;">Combat 14 · Total 122</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; color: #CDBF9C;"><span class="px" style="font-size: 16px;">Hitpoints</span><span>18 / 20</span></div>
+              <div style="height: 10px; background: #4C3E2C; border: 1px solid #120D08;"><div style="width: 90%; height: 100%; background: #C8463A;"></div></div>
+            </div>
+            <div role="tablist" aria-label="Character views" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 2px solid #120D08; background: #2A2119;">
+              <sc-for list="{{subtabs}}" as="t" hint-placeholder-count="5">
+                <button role="tab" aria-selected="{{t.sel}}" onClick="{{t.pick}}" class="px" style="font-size: 16px; min-height: 36px; padding: 4px 2px; cursor: pointer; border: 0; border-right: 1px solid #120D08; background: {{t.bg}}; color: {{t.fg}};">{{t.label}}</button>
+              </sc-for>
+            </div>
+
+            <sc-if value="{{sub.inv}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <div class="stone" role="list" aria-label="Inventory, 21 of 28 slots used" style="padding: 10px 12px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; max-width: 300px; width: 100%; margin: 0 auto; box-sizing: border-box;">
+                  <sc-for list="{{inv}}" as="it" hint-placeholder-count="28">
+                    <div role="listitem" title="{{it.full}}" aria-label="{{it.full}}" style="position: relative; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center;">
+                      <svg viewBox="0 0 32 32" width="38" height="38" aria-hidden="true" style="overflow: visible; filter: drop-shadow(1px 1px 0 rgba(0,0,0,.6));">
+                        <path d="{{it.d1}}" fill="{{it.f1}}" stroke="{{it.sk}}" stroke-width="1.2" fill-rule="evenodd" stroke-linejoin="round"></path>
+                        <path d="{{it.d2}}" fill="{{it.f2}}" stroke="{{it.sk}}" stroke-width="1.2" fill-rule="evenodd" stroke-linejoin="round"></path>
+                        <path d="{{it.d3}}" fill="{{it.f3}}" stroke="{{it.sk}}" stroke-width="1.2" fill-rule="evenodd" stroke-linejoin="round"></path>
+                      </svg>
+                      <span class="px ytxt" style="position: absolute; left: 2px; top: 0; font-size: 16px;">{{it.q}}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <span style="font-size: 14px; color: #A89878; text-align: center;">21 of 28 slots used · live</span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{sub.equip}}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <div class="stone" style="padding: 16px 12px; max-width: 300px; width: 100%; margin: 0 auto; box-sizing: border-box; position: relative;">
+                  <span aria-hidden="true" style="position: absolute; left: 50%; top: 44px; bottom: 44px; border-left: 2px solid #2A231A;"></span>
+                  <span aria-hidden="true" style="position: absolute; left: 22%; right: 22%; top: 103px; border-top: 2px solid #2A231A;"></span>
+                  <span aria-hidden="true" style="position: absolute; left: 22%; right: 22%; top: 163px; border-top: 2px solid #2A231A;"></span>
+                  <span aria-hidden="true" style="position: absolute; left: 22%; right: 22%; top: 283px; border-top: 2px solid #2A231A;"></span>
+                  <div role="list" aria-label="Worn equipment" style="position: relative; display: grid; grid-template-columns: repeat(3, 56px); grid-auto-rows: 56px; gap: 4px 30px; justify-content: center;">
+                    <sc-for list="{{equip}}" as="eq" hint-placeholder-count="15">
+                      <div role="listitem" title="{{eq.label}}" aria-label="{{eq.label}}" style="visibility: {{eq.vis}}; width: 56px; height: 56px; box-sizing: border-box; background: {{eq.bg}}; border: 1px solid #120D08; box-shadow: inset 1px 1px 0 #241D15, inset -1px -1px 0 #6B5E4A; display: flex; align-items: center; justify-content: center;">
+                        <svg viewBox="0 0 32 32" width="38" height="38" aria-hidden="true" style="overflow: visible;">
+                          <path d="{{eq.d1}}" fill="{{eq.f1}}" stroke="{{eq.sk}}" stroke-width="1.2" fill-rule="evenodd" stroke-linejoin="round"></path>
+                          <path d="{{eq.d2}}" fill="{{eq.f2}}" stroke="{{eq.sk}}" stroke-width="1.2" fill-rule="evenodd" stroke-linejoin="round"></path>
+                          <path d="{{eq.d3}}" fill="{{eq.f3}}" stroke="{{eq.sk}}" stroke-width="1.2" fill-rule="evenodd" stroke-linejoin="round"></path>
+                        </svg>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+                <span style="font-size: 14px; color: #A89878; text-align: center;">Wielding a bronze axe · leather body · leather boots</span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{sub.skills}}" hint-placeholder-val="{{ false }}">
+              <div class="stone" role="list" aria-label="Skills" style="padding: 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; max-width: 320px; width: 100%; margin: 0 auto; box-sizing: border-box;">
+                <sc-for list="{{skills}}" as="s" hint-placeholder-count="19">
+                  <div role="listitem" title="{{s.tip}}" aria-label="{{s.tip}}" style="height: 38px; display: flex; align-items: center; justify-content: space-between; gap: 2px; padding: 0 6px 0 4px; background: #3A3127; border: 1px solid {{s.bd}}; box-shadow: inset 1px 1px 0 #5E5242, inset -1px -1px 0 #241D15;">
+                    <svg viewBox="0 0 32 32" width="24" height="24" aria-hidden="true" style="flex: none;"><path d="{{s.d}}" fill="{{s.c}}" stroke="#120D08" stroke-width="1.4" fill-rule="evenodd" stroke-linejoin="round"></path></svg>
+                    <span class="px ytxt" style="font-size: 16px;">{{s.cur}}/{{s.base}}</span>
+                  </div>
+                </sc-for>
+                <div role="listitem" style="grid-column: span 2; height: 38px; display: flex; align-items: center; justify-content: center; background: #3A3127; border: 1px solid #120D08; box-shadow: inset 1px 1px 0 #5E5242, inset -1px -1px 0 #241D15;">
+                  <span class="px ytxt" style="font-size: 16px;">Total level: {{totalLevel}}</span>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{sub.quests}}" hint-placeholder-val="{{ false }}">
+              <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px;">
+                <sc-for list="{{quests}}" as="qq" hint-placeholder-count="5">
+                  <li style="display: flex; justify-content: space-between; gap: 10px; padding: 8px 10px; background: #2A2119; border: 1px solid #120D08; font-size: 15px;">
+                    <span>{{qq.n}}</span><span class="px" style="font-size: 16px; color: {{qq.c}};">{{qq.s}}</span>
+                  </li>
+                </sc-for>
+              </ul>
+            </sc-if>
+
+            <sc-if value="{{sub.bank}}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <div style="background: #3A2A14; border: 1px solid #A0702A; padding: 6px 10px; font-size: 14px; color: #F0D79A;">Last seen 12 min ago, the last time the bank was open. It may have changed since.</div>
+                <div class="stone" role="list" aria-label="Bank contents" style="padding: 10px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px;">
+                  <sc-for list="{{bank}}" as="bk" hint-placeholder-count="8">
+                    <div role="listitem" title="{{bk.full}}" aria-label="{{bk.full}}" style="position: relative; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center;">
+                      <svg viewBox="0 0 32 32" width="38" height="38" aria-hidden="true" style="overflow: visible; filter: drop-shadow(1px 1px 0 rgba(0,0,0,.6));">
+                        <path d="{{bk.d1}}" fill="{{bk.f1}}" stroke="{{bk.sk}}" stroke-width="1.2" fill-rule="evenodd" stroke-linejoin="round"></path>
+                        <path d="{{bk.d2}}" fill="{{bk.f2}}" stroke="{{bk.sk}}" stroke-width="1.2" fill-rule="evenodd" stroke-linejoin="round"></path>
+                        <path d="{{bk.d3}}" fill="{{bk.f3}}" stroke="{{bk.sk}}" stroke-width="1.2" fill-rule="evenodd" stroke-linejoin="round"></path>
+                      </svg>
+                      <span class="px ytxt" style="position: absolute; left: 2px; top: 0; font-size: 16px;">{{bk.q}}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- Goals & logic -->
+        <sc-if value="{{isGoals}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <h2 class="px" style="margin: 0; font-size: 20px; color: #D9B861;">Goal → Approach → Execution</h2>
+            <div class="parch" style="padding: 10px 12px; display: flex; flex-direction: column; gap: 3px;">
+              <span class="px" style="font-size: 16px; color: #6B4A1E;">GOAL · set 2h ago</span>
+              <strong>Reach 60 Woodcutting</strong>
+              <span style="font-size: 13px; color: #4A3820;">Level 37 → 60 · 38% of XP</span>
+            </div>
+            <div class="parch" style="padding: 10px 12px; margin-left: 16px; display: flex; flex-direction: column; gap: 3px;">
+              <span class="px" style="font-size: 16px; color: #6B4A1E;">APPROACH · review every 10 min</span>
+              <strong>Chop oaks east of the bank, bank when full</strong>
+              <span style="font-size: 13px; color: #4A3820;">Stop if XP/hr &lt; 8k, HP &lt; 50%, or 45 min pass.</span>
+            </div>
+            <div class="parch" style="padding: 10px 12px; margin-left: 32px; display: flex; flex-direction: column; gap: 3px; border-color: #A0702A;">
+              <span class="px" style="font-size: 16px; color: #6B4A1E;">EXECUTION · live, no LLM</span>
+              <strong>Walk → Chop → Wait for log → Repeat</strong>
+            </div>
+            <h3 class="px" style="margin: 6px 0 0; font-size: 16px; color: #D9B861;">Why this approach · #D-218</h3>
+            <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #E9DDB4;">Oaks gave about twice the XP per log of normal trees in a 10-minute test, and the bank is 14 tiles away, so trips are short.</p>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 14px;">
+              <div style="background: #2A2119; border: 2px solid #8FD16A; padding: 8px 10px;"><strong>Chosen:</strong> oaks near bank — 11.2k XP/hr measured</div>
+              <div style="background: #2A2119; border: 1px solid #120D08; padding: 8px 10px; color: #CDBF9C;">Normal trees — tested, ~5k XP/hr</div>
+              <div style="background: #2A2119; border: 1px solid #120D08; padding: 8px 10px; color: #CDBF9C;">Willows — not yet found on the map</div>
+            </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; font-size: 14px;">
+              <a href="Discovery.dc.html">Evidence: 2 discoveries, 31 events</a>
+              <a href="Goals.dc.html">Open Goal Explorer</a>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- Journal -->
+        <sc-if value="{{isJournal}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <h2 class="px" style="margin: 0; font-size: 20px; color: #D9B861;">Agent Journal</h2>
+            <span style="font-size: 13px; color: #A89878;">Generated summaries of recorded decisions — not raw reasoning.</span>
+            <div class="parch" style="padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; border-color: #A0702A;">
+              <span class="px" style="font-size: 16px; color: #6B4A1E;">PINNED · NOW</span>
+              <p style="margin: 0; font-size: 15px; line-height: 1.5;">“I’m working toward 60 Woodcutting. I switched to the oaks east of the bank because my test showed they give about twice the XP per log, and the bank is close.”</p>
+              <a href="Goals.dc.html" style="color: #6B3E0E; font-weight: 600; font-size: 14px;">Decision #D-218 · 31 events</a>
+            </div>
+            <sc-for list="{{journal}}" as="j" hint-placeholder-count="3">
+              <article style="background: #2A2119; border: 1px solid #120D08; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px;">
+                <span class="px" style="font-size: 16px; color: #D9B861;">{{j.t}} ago</span>
+                <p style="margin: 0; font-size: 15px; line-height: 1.45;">{{j.text}}</p>
+                <a href="Goals.dc.html" style="font-size: 13px;">{{j.link}}</a>
+              </article>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- Timeline -->
+        <sc-if value="{{isTimeline}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h2 class="px" style="margin: 0; font-size: 20px; color: #D9B861;">Timeline</h2>
+              <button class="btn" style="font-size: 16px; padding: 4px 10px; min-height: 32px;">Filter</button>
+            </div>
+            <ol style="list-style: none; margin: 0; padding: 0; font-size: 14px;">
+              <sc-for list="{{events}}" as="e" hint-placeholder-count="10">
+                <li style="display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid #4C3E2C; align-items: baseline;">
+                  <span class="px" style="font-size: 16px; color: #A89878; min-width: 58px;">{{e.t}}</span>
+                  <span class="chip" style="font-size: 16px; background: {{e.bg}}; color: #120D08;">{{e.k}}</span>
+                  <span style="color: #E9DDB4;">{{e.text}}</span>
+                </li>
+              </sc-for>
+            </ol>
+          </div>
+        </sc-if>
+
+        <!-- Session -->
+        <sc-if value="{{isSession}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <h2 class="px" style="margin: 0; font-size: 20px; color: #D9B861;">Session</h2>
+            <dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+              <sc-for list="{{metrics}}" as="m" hint-placeholder-count="8">
+                <div class="parch" style="padding: 8px 10px;"><dt class="px" style="font-size: 16px; color: #6B4A1E;">{{m.k}}</dt><dd style="margin: 0; font-weight: 700; font-size: 18px;">{{m.v}}</dd></div>
+              </sc-for>
+            </dl>
+            <div style="border-top: 1px solid #4C3E2C; padding-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+              <label for="nudge" class="px" style="font-size: 16px; color: #A89878;">Nudge {{cur.name}} (disabled for this agent)</label>
+              <input id="nudge" disabled placeholder="Suggest something — the agent weighs it, not obeys it" style="font: inherit; font-size: 14px; padding: 8px 10px; background: #2A2119; color: #A89878; border: 2px solid #120D08; min-height: 40px; box-sizing: border-box;">
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+      <p style="margin: 0; padding: 8px 14px; font-size: 12px; color: #A89878; border-top: 1px solid #4C3E2C;">Sample data only. Fonts made from <a href="http://www.onlinewebfonts.com">Web Fonts</a> is licensed by CC BY 4.0.</p>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tab":{"editor":"enum","options":["character","goals","journal","timeline","session"],"default":"character"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var st = this.state || {};
+    var tab = st.tab || this.props.tab || 'character';
+    var sub = st.sub || 'inv';
+    var agentName = st.agent || 'Ashgrove';
+    var A = [
+      { name: 'Ashgrove', dot: '#8FD16A', state: 'online', activity: 'Chopping oaks · 60 Woodcutting goal' },
+      { name: 'Bram', dot: '#8FD16A', state: 'online', activity: 'Training Defence on goblins' },
+      { name: 'Wren', dot: '#E0A040', state: 'reconnecting', activity: 'Investigating the general store' }
+    ];
+    var cur = A.filter(function (a) { return a.name === agentName; })[0];
+    var tabDefs = [['character', 'Character'], ['goals', 'Goals'], ['journal', 'Journal'], ['timeline', 'Timeline'], ['session', 'Session']];
+    // Original placeholder icons (32x32), drawn for this mock-up — swap for real client sprites later.
+    var IC = {
+      log: [['M4 21 L21 9 L27 16 L10 27 Z', '#8A5A2B'], ['M21 9 C24 7 28 11 27 16 C25 18 21 14 21 9 Z', '#D9B07A']],
+      oak: [['M4 21 L21 9 L27 16 L10 27 Z', '#6B4320'], ['M21 9 C24 7 28 11 27 16 C25 18 21 14 21 9 Z', '#C9A060']],
+      axe: [['M7 27 L21 8 L23.5 9.5 L9.5 28.5 Z', '#7A5230'], ['M18 5 L27 3 L28 13 L22 12 Z', '#C08A4A']],
+      ironaxe: [['M7 27 L21 8 L23.5 9.5 L9.5 28.5 Z', '#7A5230'], ['M18 5 L27 3 L28 13 L22 12 Z', '#A9B0B6']],
+      tinder: [['M6 12 H24 V24 H6 Z', '#707070'], ['M6 12 L10 8 H28 L24 12 Z', '#A0A0A0'], ['M24 12 L28 8 V20 L24 24 Z', '#555555']],
+      bread: [['M4 19 C6 9 26 9 28 19 C28 24 4 24 4 19 Z', '#C98E3E'], ['M11 13 L12 17 M16 12 L16 16 M21 13 L20 17', 'none']],
+      coins: [['M8 22 A7 4 0 1 0 22 22 A7 4 0 1 0 8 22 Z', '#C9A020'], ['M12 15 A7 4 0 1 0 26 15 A7 4 0 1 0 12 15 Z', '#F2D35B']],
+      sword: [['M24 3 L29 4 L28 9 L13 24 L8 19 Z', '#C08A4A'], ['M5 16 L16 27 L14 29 L3 18 Z', '#6E4A2A'], ['M9 23 L4 28', 'none']],
+      body: [['M9 7 L13 5 Q16 8 19 5 L23 7 L27 15 L23 16 L22 27 H10 L9 16 L5 15 Z', '#8A5A2B']],
+      boots: [['M8 5 H15 V19 H26 V25 H8 Z', '#6B4320']],
+      shrimp: [['M6 18 C8 8 22 6 26 14 C22 12 14 14 12 22 Z', '#E8907A']],
+      bucket: [['M8 10 H24 L22 26 H10 Z', '#8A8A8A'], ['M8 10 C8 2 24 2 24 10', 'none']],
+      helm: [['M7 20 C7 8 25 8 25 20 V24 H7 Z', '#888']],
+      cape: [['M10 5 H22 L26 27 H6 Z', '#888']],
+      amulet: [['M9 5 C9 18 23 18 23 5', 'none'], ['M13 20 A3 3 0 1 0 19 20 A3 3 0 1 0 13 20 Z', '#888']],
+      arrows: [['M6 26 L24 8', 'none'], ['M19 6 L26 6 L26 13 Z', '#888'], ['M6 22 L10 26 L7 29 L3 25 Z', '#888']],
+      shield: [['M6 6 H26 V15 C26 22 16 28 16 28 C16 28 6 22 6 15 Z', '#888']],
+      legs: [['M9 5 H23 L22 28 H18 L16 13 L14 28 H10 Z', '#888']],
+      gloves: [['M9 28 V12 L11 6 L13 12 L14 5 L16 12 L17 5 L19 12 L21 7 L23 13 V28 Z', '#888']],
+      ring: [['M8 18 A8 8 0 1 0 24 18 A8 8 0 1 0 8 18 Z M12 18 A4 4 0 1 0 20 18 A4 4 0 1 0 12 18 Z', '#888']]
+    };
+    function icon(name, empty) {
+      var p = IC[name] || [], o = { sk: empty ? 'rgba(0,0,0,.35)' : '#120D08' };
+      for (var n = 0; n < 3; n++) {
+        var q = p[n] || ['', 'none'];
+        o['d' + (n + 1)] = q[0];
+        o['f' + (n + 1)] = q[1] === 'none' ? 'none' : (empty ? 'rgba(0,0,0,.28)' : q[1]);
+      }
+      return o;
+    }
+    function item(name, full, q) { return Object.assign(icon(name), { full: full, q: q || '' }); }
+    var inv = [item('axe', 'Bronze axe'), item('tinder', 'Tinderbox'), item('bread', 'Bread')];
+    for (var i = 0; i < 18; i++) inv.push(item('oak', 'Oak logs'));
+    for (var k = 0; k < 7; k++) inv.push(Object.assign(icon(''), { full: 'Empty slot', q: '' }));
+    var EQ = [
+      null, ['Head', 'helm'], null,
+      ['Cape', 'cape'], ['Neck', 'amulet'], ['Ammo', 'arrows'],
+      ['Weapon', 'sword', 'axe', 'Bronze axe'], ['Body', 'body', 'body', 'Leather body'], ['Shield', 'shield'],
+      null, ['Legs', 'legs'], null,
+      ['Hands', 'gloves'], ['Feet', 'boots', 'boots', 'Leather boots'], ['Ring', 'ring']
+    ];
+    var equip = EQ.map(function (e) {
+      if (!e) return Object.assign(icon(''), { vis: 'hidden', label: '', bg: 'transparent' });
+      var worn = !!e[2];
+      return Object.assign(icon(worn ? e[2] : e[1], !worn), { vis: 'visible', label: e[0] + ': ' + (worn ? e[3] : 'empty'), bg: worn ? '#4A3E30' : '#3A3127' });
+    });
+    var SK = {
+      Attack: ['M24 3 L29 4 L28 9 L13 24 L8 19 Z M5 16 L16 27 L14 29 L3 18 Z', '#C0C6CC'],
+      Hitpoints: ['M16 28 C4 19 3 12 7 8 C10 5 14 6 16 10 C18 6 22 5 25 8 C29 12 28 19 16 28 Z', '#D8443A'],
+      Mining: ['M4 11 C10 4 22 4 28 11 C22 8 10 8 4 11 Z M14.5 8 H17.5 V29 H14.5 Z', '#A08060'],
+      Strength: ['M8 25 C5 14 12 5 21 8 C27 10 27 18 22 22 L14 27 Z', '#D9A066'],
+      Agility: ['M3 13 H19 V6 L29 16 L19 26 V19 H3 Z', '#6A94D0'],
+      Smithing: ['M4 9 H27 C27 13 23 15 20 16 V21 H24 V26 H8 V21 H12 V16 C8 15 4 13 4 9 Z', '#8A9096'],
+      Defence: ['M6 5 H26 V15 C26 22 16 28 16 28 C16 28 6 22 6 15 Z', '#7A94C0'],
+      Herblore: ['M5 27 C5 12 13 4 28 4 C28 18 20 27 5 27 Z', '#5E9A3A'],
+      Fishing: ['M3 16 C9 8 19 8 25 16 C19 24 9 24 3 16 Z M25 16 L30 10 V22 Z', '#6AA8D0'],
+      Ranged: ['M9 3 C23 7 23 25 9 29 L11 26 C19 22 19 10 11 6 Z M9 4 V28 H8 V4 Z', '#9A6A3A'],
+      Thieving: ['M3 12 C10 8 22 8 29 12 C29 19 22 21 16 17 C10 21 3 19 3 12 Z M9 13 H13 V15 H9 Z M19 13 H23 V15 H19 Z', '#9A8AAE'],
+      Cooking: ['M5 13 H27 V16 C27 24 22 27 16 27 C10 27 5 24 5 16 Z M3 10 H29 V13 H3 Z', '#8A8A8A'],
+      Prayer: ['M16 3 L19.5 12 L29 12 L21.5 18 L24.5 28 L16 22 L7.5 28 L10.5 18 L3 12 L12.5 12 Z', '#F2E6A0'],
+      Crafting: ['M20 3 L25 8 L12 21 L7 16 Z M7 16 L12 21 L6 27 L3 24 Z', '#C09A6A'],
+      Firemaking: ['M16 29 C8 29 6 22 9 16 C11 12 12 10 12 4 C17 8 22 13 22 18 C24 16 24 14 24 12 C28 17 27 29 16 29 Z', '#E8742A'],
+      Magic: ['M16 3 L24 23 H8 Z M4 23 H28 V27 H4 Z', '#6A7AD8'],
+      Fletching: ['M4 27 L21 10 L23 12 L6 29 Z M19 4 H28 V13 L24 9 Z', '#C09A6A'],
+      Woodcutting: ['M7 27 L21 8 L23.5 9.5 L9.5 28.5 Z M18 5 L27 3 L28 13 L22 12 Z', '#C08A4A'],
+      Runecraft: ['M16 3 L27 16 L16 29 L5 16 Z', '#9A8AE0']
+    };
+    var LV = { Attack: 12, Hitpoints: 20, Mining: 1, Strength: 11, Agility: 1, Smithing: 1, Defence: 8, Herblore: 1, Fishing: 5, Ranged: 1, Thieving: 1, Cooking: 1, Prayer: 3, Crafting: 1, Firemaking: 15, Magic: 1, Fletching: 1, Woodcutting: 37, Runecraft: 1 };
+    var SORDER = ['Attack', 'Hitpoints', 'Mining', 'Strength', 'Agility', 'Smithing', 'Defence', 'Herblore', 'Fishing', 'Ranged', 'Thieving', 'Cooking', 'Prayer', 'Crafting', 'Firemaking', 'Magic', 'Fletching', 'Woodcutting', 'Runecraft'];
+    var totalLevel = 0;
+    var skills = SORDER.map(function (n) {
+      totalLevel += LV[n];
+      var cur = n === 'Hitpoints' ? 18 : LV[n];
+      return { d: SK[n][0], c: SK[n][1], cur: cur, base: LV[n], tip: n + ': ' + cur + ' / ' + LV[n] + (n === 'Woodcutting' ? ' · training now' : ''), bd: n === 'Woodcutting' ? '#E3C26A' : '#120D08' };
+    });
+    return {
+      menuOpen: !!st.menuOpen,
+      toggleMenu: function () { self.setState({ menuOpen: !st.menuOpen }); },
+      cur: cur,
+      agents: A.map(function (a) {
+        var sel = a.name === agentName;
+        return Object.assign({}, a, { sel: sel, bg: sel ? '#5A4630' : '#2A2119', pick: function () { self.setState({ agent: a.name, menuOpen: false }); } });
+      }),
+      openGoals: function () { self.setState({ tab: 'goals' }); },
+      tabs: tabDefs.map(function (t) {
+        var sel = t[0] === tab;
+        return { label: t[1], sel: sel, bg: sel ? '#6B5434' : '#4A3B2B', fg: sel ? '#FFF1C4' : '#CDBF9C', bb: sel ? '#D9B861' : '#120D08', pick: function () { self.setState({ tab: t[0] }); } };
+      }),
+      isChar: tab === 'character', isGoals: tab === 'goals', isJournal: tab === 'journal', isTimeline: tab === 'timeline', isSession: tab === 'session',
+      inv: inv,
+      subtabs: [['inv', 'Inv'], ['equip', 'Equip'], ['skills', 'Skills'], ['quests', 'Quests'], ['bank', 'Bank']].map(function (t) {
+        var sel = t[0] === sub;
+        return { label: t[1], sel: sel, bg: sel ? '#6B5434' : '#2A2119', fg: sel ? '#FFF1C4' : '#CDBF9C', pick: function () { self.setState({ sub: t[0] }); } };
+      }),
+      sub: { inv: sub === 'inv', equip: sub === 'equip', skills: sub === 'skills', quests: sub === 'quests', bank: sub === 'bank' },
+      equip: equip,
+      skills: skills,
+      totalLevel: totalLevel,
+      quests: [
+        { n: 'Cook’s Assistant', s: 'Done', c: '#8FD16A' }, { n: 'Sheep Shearer', s: 'Started', c: '#F2D35B' }, { n: 'Dragon Slayer', s: 'Not started', c: '#E07A6A' },
+        { n: 'Romeo & Juliet', s: 'Not started', c: '#E07A6A' }
+      ],
+      bank: [
+        item('oak', 'Oak logs ×412', '412'), item('log', 'Logs ×96', '96'), item('coins', 'Coins ×1,240', '1240'),
+        item('bread', 'Bread ×3', '3'), item('sword', 'Bronze sword', ''), item('ironaxe', 'Iron axe', ''),
+        item('shrimp', 'Raw shrimps ×14', '14'), item('bucket', 'Bucket ×2', '2')
+      ],
+      journal: [
+        { t: '41m', text: '“Normal trees were too slow. I tried one oak to see whether my level allows it — it did, and the first log gave noticeably more XP.”', link: 'Decision #D-214 · 4 events' },
+        { t: '1h 12m', text: '“I was told about a shop north of the bank. I haven’t been inside, so I’m marking it to investigate instead of assuming what it sells.”', link: 'Nudge N-07 · Deferred' },
+        { t: '2h 03m', text: '“I died to a goblin while carrying logs. I’ll avoid the field south of the river until my Hitpoints are higher.”', link: 'Decision #D-209 · replanned after death' }
+      ],
+      events: [
+        { t: '21:44:10', k: 'MOVE', bg: '#A9C7E8', text: 'Path to oak (14 tiles)' },
+        { t: '21:44:02', k: 'XP', bg: '#BFD99A', text: '+37.5 Woodcutting' },
+        { t: '21:44:02', k: 'ITEM', bg: '#E8D29A', text: 'Gained Oak logs' },
+        { t: '21:43:51', k: 'ACT', bg: '#E8C09A', text: 'Chop down → Oak' },
+        { t: '21:43:30', k: 'XP', bg: '#BFD99A', text: '+37.5 Woodcutting' },
+        { t: '21:43:30', k: 'ITEM', bg: '#E8D29A', text: 'Gained Oak logs' },
+        { t: '21:42:58', k: 'ACT', bg: '#E8C09A', text: 'Chop down → Oak' },
+        { t: '21:41:12', k: 'BANK', bg: '#D3BEEA', text: 'Deposited 27 Oak logs' },
+        { t: '21:40:05', k: 'PLAN', bg: '#F0B3A3', text: 'Approach review: continue' },
+        { t: '21:31:40', k: 'MOVE', bg: '#A9C7E8', text: 'Path to bank (14 tiles)' }
+      ],
+      metrics: [
+        { k: 'UPTIME', v: '3h 41m' }, { k: 'XP / HR', v: '11.2k' }, { k: 'LLM CALLS', v: '23' }, { k: 'TOKENS', v: '184k' },
+        { k: 'AVG LATENCY', v: '2.4s' }, { k: 'BUDGET USED', v: '31%' }, { k: 'REPLANS', v: '4' }, { k: 'FAILED ACTIONS', v: '2' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

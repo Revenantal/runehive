@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Discoveries</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&amp;family=Source+Sans+3:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1A140E}
+:focus-visible{outline:2px solid #F2D35B;outline-offset:2px}
+a{color:#E3C26A}a:hover{color:#F6DFA0}
+@font-face{font-family:'RSPlain';src:url(/_blob/af060588e34f85becf9b1d3a8834c275) format('woff2'),url(/_blob/95d0e990b32d4c3f66f2edf8bbce9dc8) format('woff');font-display:swap}
+.px{font-family:'RSPlain','Pixelify Sans',ui-monospace,monospace;font-synthesis:none}
+.panel{background:#3A2F23;border:2px solid #120D08;box-shadow:inset 2px 2px 0 #6E5A3D,inset -2px -2px 0 #231B12}
+.parch{background:#E8DCB8;color:#2E2010;border:2px solid #6B5634;box-shadow:inset 0 0 0 2px #F4ECD3}
+.btn{font-family:'RSPlain','Pixelify Sans',monospace;font-synthesis:none;font-size:16px;color:#F0E2B6;background:#4A3B2B;border:2px solid #120D08;box-shadow:inset 2px 2px 0 #7E6848,inset -2px -2px 0 #2A2016;padding:8px 14px;min-height:40px;cursor:pointer}
+.chip{font-family:'RSPlain','Pixelify Sans',monospace;font-synthesis:none;font-size:16px;line-height:1.1;padding:2px 8px;border:1px solid #120D08;white-space:nowrap}
+.linkbtn{font:inherit;font-size:15px;background:none;border:0;padding:2px 0;color:#6B3E0E;text-decoration:underline;cursor:pointer;text-align:left}
+.relbtn{font-family:'RSPlain','Pixelify Sans',monospace;font-synthesis:none;font-size:16px;background:#F4ECD3;color:#2E2010;border:1px solid #6B5634;padding:6px 10px;min-height:36px;cursor:pointer}
+.navitem{font:inherit;font-size:15px;width:100%;text-align:left;background:none;border:0;border-left:3px solid transparent;color:#E9DDB4;padding:5px 10px 5px 30px;min-height:32px;cursor:pointer;display:block}
+.navitem:hover{background:#3A2F23;color:#FFF1C4}
+.cathead{font-family:'RSPlain','Pixelify Sans',monospace;font-synthesis:none;font-size:20px;width:100%;text-align:left;background:none;border:0;color:#D9B861;padding:8px 10px;min-height:40px;cursor:pointer;display:flex;align-items:center;gap:8px}
+.cathead:hover{background:#3A2F23}
+.gnode:hover{filter:brightness(1.12)}
+.ctl{width:40px;height:40px;background:#3A2F23;color:#F0E2B6;border:0;border-bottom:1px solid #120D08;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px}
+.ctl:hover{background:#4A3B2B}
+.flow{stroke-dasharray:8 6;animation:flowdash .7s linear infinite}
+@keyframes flowdash{to{stroke-dashoffset:-14}}
+@media (min-width: 900px){ .docrow{height:calc(100vh - 116px)} .scrollpane{overflow-y:auto} }
+</style>
+</helmet>
+<div style="min-height: 100vh; box-sizing: border-box; background: #1A140E; color: #F0E2B6; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 16px; display: flex; flex-direction: column;">
+
+  <header class="panel" style="position: relative; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; padding: 10px 20px; border-left: 0; border-right: 0; border-top: 0; min-height: 64px; box-sizing: border-box;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="3" y="3" width="22" height="22" fill="#2A2119" stroke="#D9B861" stroke-width="2"></rect><path d="M8 19 L14 8 L20 19 Z" fill="none" stroke="#D9B861" stroke-width="2"></path></svg>
+      <span class="px" style="font-size: 24px; color: #D9B861;">Control Center</span>
+    </div>
+    <nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap;">
+      <a href="Main.dc.html" class="btn" style="text-decoration: none; display: inline-flex; align-items: center;">Agent View</a>
+      <a href="Discovery.dc.html" class="btn" style="text-decoration: none; background: #6B5434; color: #FFF1C4; display: inline-flex; align-items: center;" aria-current="page">Discoveries</a>
+      <a href="Goals.dc.html" class="btn" style="text-decoration: none; display: inline-flex; align-items: center;">Goals</a>
+    </nav>
+    <div style="flex: 1 1 40px;"></div>
+    <div class="px" style="font-size: 16px; color: #CDBF9C; display: flex; align-items: center; gap: 8px;">
+      <span style="width: 8px; height: 8px; background: #8FD16A; border-radius: 50%;"></span>Live · 3s ago
+    </div>
+    <div style="position: relative;">
+      <button class="btn" onClick="{{toggleMenu}}" aria-haspopup="listbox" aria-expanded="{{menuOpen}}" style="display: flex; align-items: center; gap: 10px; min-width: 200px; justify-content: space-between;">
+        <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: {{curAgent.dot}}; border: 1px solid #120D08;"></span><span style="color: #A89878;">Agent:</span> {{curAgent.name}}</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="#D9B861" stroke-width="2" fill="none"></path></svg>
+      </button>
+      <sc-if value="{{menuOpen}}" hint-placeholder-val="{{ false }}">
+        <ul role="listbox" aria-label="Select agent" class="panel" style="position: absolute; right: 0; top: calc(100% + 6px); width: 300px; margin: 0; padding: 6px; list-style: none; display: flex; flex-direction: column; gap: 4px; z-index: 40;">
+          <sc-for list="{{agents}}" as="a" hint-placeholder-count="4">
+            <li>
+              <button role="option" aria-selected="{{a.sel}}" onClick="{{a.pick}}" style="width: 100%; text-align: left; font: inherit; cursor: pointer; background: {{a.bg}}; color: #F0E2B6; border: 1px solid #120D08; padding: 8px 10px; display: flex; gap: 10px; align-items: flex-start; min-height: 44px;">
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: {{a.dot}}; border: 1px solid #120D08; margin-top: 5px; flex: none;"></span>
+                <span style="display: flex; flex-direction: column; gap: 2px;">
+                  <span class="px" style="font-size: 16px;">{{a.name}}</span>
+                  <span style="font-size: 13px; color: #CDBF9C;">{{a.activity}}</span>
+                </span>
+              </button>
+            </li>
+          </sc-for>
+        </ul>
+      </sc-if>
+    </div>
+  </header>
+
+  <!-- Sub bar -->
+  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 6px 20px; min-height: 52px; box-sizing: border-box; background: #241C14; border-bottom: 2px solid #120D08;">
+    <span class="px" style="font-size: 20px; color: #D9B861;">Discoveries</span>
+    <span style="font-size: 14px; color: #A89878;">{{count}} shared · sample data</span>
+    <div style="flex: 1 1 20px;"></div>
+    <div role="group" aria-label="View" style="display: flex; gap: 3px;">
+      <button class="btn" aria-pressed="{{isList}}" onClick="{{setList}}" style="min-height: 36px; padding: 4px 14px; background: {{listBg}}; color: {{listFg}};">Browse</button>
+      <button class="btn" aria-pressed="{{isGraph}}" onClick="{{setGraph}}" style="min-height: 36px; padding: 4px 14px; background: {{graphBg}}; color: {{graphFg}};">Connections</button>
+    </div>
+  </div>
+
+  <!-- ===================== BROWSE (docs-style) ===================== -->
+  <sc-if value="{{isList}}" hint-placeholder-val="{{ true }}">
+    <div class="docrow" style="flex: 1; display: flex; flex-wrap: wrap; min-height: 0;">
+
+      <!-- Left nav -->
+      <nav aria-label="Discovery index" class="scrollpane" style="flex: 1 1 280px; max-height: 100%; min-width: 0; box-sizing: border-box; background: #221A12; border-right: 2px solid #120D08; display: flex; flex-direction: column;">
+        <div style="padding: 10px; border-bottom: 1px solid #3A2F23; position: sticky; top: 0; background: #221A12; z-index: 1;">
+          <label for="q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Search discoveries</label>
+          <input id="q" onInput="{{onQ}}" placeholder="Search…" style="width: 100%; box-sizing: border-box; font: inherit; font-size: 15px; padding: 8px 10px; background: #E8DCB8; color: #2E2010; border: 2px solid #120D08; min-height: 40px;">
+        </div>
+        <div style="padding: 6px 0 16px;">
+          <sc-for list="{{tree}}" as="c" hint-placeholder-count="5">
+            <div>
+              <button class="cathead" onClick="{{c.toggle}}" aria-expanded="{{c.open}}">
+                <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true" style="transform: {{c.rot}};"><path d="M3 1 L7 5 L3 9" stroke="#D9B861" stroke-width="2" fill="none"></path></svg>
+                <span style="flex: 1;">{{c.label}}</span>
+                <span style="font-size: 14px; color: #A89878;">{{c.n}}</span>
+              </button>
+              <sc-if value="{{c.open}}" hint-placeholder-val="{{ false }}">
+                <div style="padding-bottom: 6px;">
+                  <sc-for list="{{c.groups}}" as="gr" hint-placeholder-count="2">
+                    <div>
+                      <div class="px" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px 2px 30px; font-size: 16px; color: #A89878; letter-spacing: .04em;">
+                        <span style="width: 8px; height: 8px; background: {{gr.c}}; border: 1px solid #120D08;"></span>{{gr.label}}
+                      </div>
+                      <sc-for list="{{gr.items}}" as="it" hint-placeholder-count="2">
+                        <button class="navitem" onClick="{{it.go}}" aria-current="{{it.cur}}" style="background: {{it.bg}}; border-left-color: {{it.bl}}; color: {{it.fg}}; text-decoration: {{it.td}}; font-style: {{it.fs}};">{{it.subject}}</button>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+          <sc-if value="{{noResults}}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 10px; font-size: 14px; color: #A89878;">No discoveries match.</p>
+          </sc-if>
+        </div>
+      </nav>
+
+      <!-- Detail pane -->
+      <main class="scrollpane" style="flex: 999 1 560px; min-width: 0; max-height: 100%; box-sizing: border-box; padding: 20px clamp(16px, 4vw, 48px) 32px;">
+        <div style="max-width: 860px; display: flex; flex-direction: column; gap: 18px;">
+
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 36px;">
+            <sc-if value="{{canBack}}" hint-placeholder-val="{{ false }}">
+              <button class="btn" onClick="{{back}}" style="font-size: 16px; min-height: 34px; padding: 3px 10px;">← Back</button>
+            </sc-if>
+            <nav aria-label="Trail" style="display: flex; flex-wrap: wrap; gap: 4px; font-size: 14px; color: #A89878;">
+              <sc-for list="{{crumbs}}" as="cr" hint-placeholder-count="1">
+                <span class="px">{{cr.sep}}{{cr.label}}</span>
+              </sc-for>
+            </nav>
+          </div>
+
+          <!-- Discovery page -->
+          <sc-if value="{{m.isDisc}}" hint-placeholder-val="{{ true }}">
+            <article style="display: flex; flex-direction: column; gap: 18px;">
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <span class="chip" style="background: {{m.sc}}; color: #120D08;">{{m.status}}</span>
+                <span class="chip" style="background: #3A2F23; color: #CDBF9C;">{{m.cat}}</span>
+                <span class="chip" style="background: #3A2F23; color: #CDBF9C;">Shared</span>
+                <span style="flex: 1;"></span>
+                <span class="px" style="font-size: 16px; color: #A89878;">{{m.id}}</span>
+              </div>
+              <header style="display: flex; flex-direction: column; gap: 6px; border-bottom: 2px solid #3A2F23; padding-bottom: 14px;">
+                <h1 class="px" style="margin: 0; font-size: 34px; font-weight: 400; color: #F6EACB;">{{m.subject}}</h1>
+                <p style="margin: 0; font-size: 20px; color: #E9DDB4;">{{m.claim}}</p>
+                <p style="margin: 0; font-size: 14px; color: #A89878;">First discovered by <strong style="color: #E9DDB4;">{{m.by}}</strong> · {{m.when}} · last seen {{m.seen}}</p>
+              </header>
+
+              <section style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 8px;">
+                  <h2 class="px" style="margin: 0; font-size: 20px; font-weight: 400; color: #D9B861;">Observation</h2>
+                  <p style="margin: 0; font-size: 16px; line-height: 1.55;">{{m.obs}}</p>
+                  <p style="margin: 0; font-size: 15px; color: #E0C27A;"><strong>Status:</strong> {{m.why}}</p>
+                </div>
+                <div style="flex: 0 0 190px; height: 130px; background: #4B6A2C; border: 2px solid #120D08; position: relative;" role="img" aria-label="Map thumbnail with a pin">
+                  <div style="position: absolute; left: 0; top: 62px; right: 0; height: 8px; background: #8C7350;"></div>
+                  <div style="position: absolute; left: 80px; top: 34px; width: 34px; height: 26px; background: #8E8270; border: 2px solid #2A2119;"></div>
+                  <div style="position: absolute; left: 90px; top: 22px; width: 14px; height: 14px; border-radius: 50%; background: #E0813A; border: 2px solid #120D08;"></div>
+                  <a href="Main.dc.html" style="position: absolute; left: 6px; bottom: 6px; font-size: 13px; background: #2A2119; padding: 2px 6px;">Show on map</a>
+                </div>
+              </section>
+
+              <section style="display: flex; flex-direction: column; gap: 8px;">
+                <h2 class="px" style="margin: 0; font-size: 20px; font-weight: 400; color: #D9B861;">History</h2>
+                <ol style="list-style: none; margin: 0; padding: 0 0 0 4px;">
+                  <sc-for list="{{m.hist}}" as="h" hint-placeholder-count="2">
+                    <li style="display: flex; gap: 12px;">
+                      <div style="display: flex; flex-direction: column; align-items: center; width: 14px;">
+                        <span style="width: 12px; height: 12px; background: {{h.dot}}; border: 2px solid #120D08; border-radius: 50%; margin-top: 5px;"></span>
+                        <span style="flex: 1; width: 2px; background: #4C3E2C;"></span>
+                      </div>
+                      <div style="padding-bottom: 14px; display: flex; flex-direction: column; gap: 2px;">
+                        <span class="px" style="font-size: 16px; color: #A89878;">{{h.kind}} · {{h.who}} · {{h.when}}</span>
+                        <span style="font-size: 16px;">{{h.text}}</span>
+                      </div>
+                    </li>
+                  </sc-for>
+                </ol>
+              </section>
+
+              <section class="parch" style="padding: 16px 18px; display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 6px;">
+                  <h2 class="px" style="margin: 0; font-size: 20px; font-weight: 400; color: #6B4A1E;">Evidence ({{m.evn}})</h2>
+                  <sc-if value="{{m.noEv}}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size: 15px; color: #6B3E0E;">None yet — this is an untested hypothesis.</span>
+                  </sc-if>
+                  <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px;">
+                    <sc-for list="{{m.ev}}" as="ev" hint-placeholder-count="2">
+                      <li><button class="linkbtn" onClick="{{ev.go}}">{{ev.id}} · {{ev.title}}</button></li>
+                    </sc-for>
+                  </ul>
+                </div>
+                <div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 6px;">
+                  <h2 class="px" style="margin: 0; font-size: 20px; font-weight: 400; color: #6B4A1E;">Conflicting evidence</h2>
+                  <sc-if value="{{m.noConf}}" hint-placeholder-val="{{ true }}">
+                    <span style="font-size: 15px; color: #4A3820;">None recorded.</span>
+                  </sc-if>
+                  <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px;">
+                    <sc-for list="{{m.conf}}" as="cf" hint-placeholder-count="0">
+                      <li><button class="linkbtn" onClick="{{cf.go}}">{{cf.id}} · {{cf.title}}</button></li>
+                    </sc-for>
+                  </ul>
+                </div>
+              </section>
+
+              <section style="display: flex; flex-direction: column; gap: 8px;">
+                <h2 class="px" style="margin: 0; font-size: 20px; font-weight: 400; color: #D9B861;">Related</h2>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                  <sc-for list="{{m.rel}}" as="rl" hint-placeholder-count="3">
+                    <button class="relbtn" onClick="{{rl.go}}"><span style="display: inline-block; width: 8px; height: 8px; background: {{rl.sc}}; border: 1px solid #120D08; margin-right: 6px;"></span>{{rl.subject}} <span style="color: #6B4A1E;">· {{rl.rel}}</span></button>
+                  </sc-for>
+                </div>
+                <button class="linkbtn" onClick="{{m.showGraph}}" style="color: #E3C26A; font-size: 15px; align-self: flex-start;">See it in Connections</button>
+              </section>
+            </article>
+          </sc-if>
+
+          <!-- Event page -->
+          <sc-if value="{{m.isEvent}}" hint-placeholder-val="{{ false }}">
+            <article style="display: flex; flex-direction: column; gap: 18px;">
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <span class="chip" style="background: #E8DCB8; color: #2E2010;">Event</span>
+                <span class="chip" style="background: #3A2F23; color: #CDBF9C;">Append-only</span>
+                <span style="flex: 1;"></span>
+                <span class="px" style="font-size: 16px; color: #A89878;">{{m.id}}</span>
+              </div>
+              <header style="display: flex; flex-direction: column; gap: 6px; border-bottom: 2px solid #3A2F23; padding-bottom: 14px;">
+                <h1 class="px" style="margin: 0; font-size: 30px; font-weight: 400; color: #F6EACB;">{{m.title}}</h1>
+                <p style="margin: 0; font-size: 14px; color: #A89878;">Recorded by <strong style="color: #E9DDB4;">{{m.agent}}</strong>’s client · {{m.when}}</p>
+              </header>
+              <pre style="margin: 0; background: #241C14; border: 2px solid #120D08; padding: 14px 16px; font-family: ui-monospace, monospace; font-size: 14px; line-height: 1.6; color: #E9DDB4; white-space: pre-wrap;">{{m.raw}}</pre>
+              <section style="display: flex; flex-direction: column; gap: 8px;">
+                <h2 class="px" style="margin: 0; font-size: 20px; font-weight: 400; color: #D9B861;">Used as evidence by</h2>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                  <sc-for list="{{m.supports}}" as="sp" hint-placeholder-count="1">
+                    <button class="relbtn" onClick="{{sp.go}}"><span style="display: inline-block; width: 8px; height: 8px; background: {{sp.sc}}; border: 1px solid #120D08; margin-right: 6px;"></span>{{sp.subject}}{{sp.tag}}</button>
+                  </sc-for>
+                </div>
+              </section>
+              <a href="Main.dc.html" style="font-size: 15px;">Jump to this moment in {{m.agent}}’s timeline</a>
+            </article>
+          </sc-if>
+
+          <p style="margin: 24px 0 0; font-size: 13px; color: #A89878; border-top: 1px solid #3A2F23; padding-top: 10px;">Sample data for layout only — not verified game facts. Fonts made from <a href="http://www.onlinewebfonts.com">Web Fonts</a> is licensed by CC BY 4.0.</p>
+        </div>
+      </main>
+    </div>
+  </sc-if>
+
+  <!-- ===================== CONNECTIONS (node canvas) ===================== -->
+  <sc-if value="{{isGraph}}" hint-placeholder-val="{{ false }}">
+    <section aria-label="Discovery connections" class="docrow" style="flex: 1; min-height: 600px; position: relative; overflow: hidden; background: #241C14;">
+      <div ref="{{g.canvasRef}}" onPointerDown="{{g.bgDown}}" onPointerMove="{{g.move}}" onPointerUp="{{g.up}}" onPointerCancel="{{g.up}}" style="position: absolute; inset: 0; cursor: {{g.cursor}}; touch-action: none; background-color: #241C14; background-image: radial-gradient(#5A4A36 1.3px, transparent 1.3px); background-size: {{g.grid}}px {{g.grid}}px; background-position: {{g.px}}px {{g.py}}px;">
+        <div style="position: absolute; left: 0; top: 0; transform-origin: 0 0; transform: translate({{g.px}}px, {{g.py}}px) scale({{g.zoom}});">
+          <sc-for list="{{g.edges}}" as="e" hint-placeholder-count="0">
+            <div style="position: absolute; left: 0; top: 0;">
+              <svg aria-hidden="true" width="1" height="1" style="position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none;">
+                <path d="{{e.d}}" fill="none" stroke="{{e.stroke}}" stroke-width="{{e.sw}}" class="{{e.cls}}"></path>
+              </svg>
+              <span class="px" style="position: absolute; left: {{e.lx}}px; top: {{e.ly}}px; transform: translate(-50%, -50%); font-size: 16px; padding: 1px 7px; background: #241C14; color: {{e.lc}}; border: 1px solid {{e.lb}}; white-space: nowrap; pointer-events: none;">{{e.label}}</span>
+            </div>
+          </sc-for>
+          <sc-for list="{{g.nodes}}" as="n" hint-placeholder-count="0">
+            <button class="gnode" onPointerDown="{{n.down}}" onClick="{{n.click}}" onDoubleClick="{{n.dbl}}" aria-pressed="{{n.sel}}" style="position: absolute; left: {{n.x}}px; top: {{n.y}}px; width: 220px; height: 92px; box-sizing: border-box; text-align: left; font: inherit; cursor: grab; touch-action: none; background: #3A2F23; color: #F0E2B6; border: 2px {{n.bs}} {{n.border}}; box-shadow: {{n.shadow}}; padding: 0; opacity: {{n.op}}; display: flex; flex-direction: column;">
+              <span style="display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 4px 10px; background: {{n.hbg}}; border-bottom: 1px solid #120D08;">
+                <span class="px" style="font-size: 16px; color: #120D08;">{{n.cat}}</span>
+                <span class="chip" style="font-size: 16px; background: {{n.sc}}; color: #120D08;">{{n.status}}</span>
+              </span>
+              <span style="padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; min-height: 0; overflow: hidden;">
+                <span style="font-weight: 700; font-size: 15px; color: #F6EACB; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{n.subject}}</span>
+                <span style="font-size: 13px; color: #CDBF9C; line-height: 1.3; overflow: hidden; max-height: 34px;">{{n.claim}}</span>
+              </span>
+              <span aria-hidden="true" style="position: absolute; left: -7px; top: 39px; width: 10px; height: 10px; border-radius: 50%; background: #D9B861; border: 2px solid #120D08;"></span>
+              <span aria-hidden="true" style="position: absolute; right: -7px; top: 39px; width: 10px; height: 10px; border-radius: 50%; background: #D9B861; border: 2px solid #120D08;"></span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- Filter toolbar -->
+      <div style="position: absolute; top: 12px; left: 12px; max-width: calc(100% - 24px); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 6px 8px; background: rgba(42,33,25,.95); border: 2px solid #120D08;">
+        <span class="px" style="font-size: 16px; color: #A89878; padding: 0 4px;">Show</span>
+        <sc-for list="{{g.cats}}" as="c" hint-placeholder-count="5">
+          <button aria-pressed="{{c.on}}" onClick="{{c.toggle}}" class="px" style="font-size: 16px; min-height: 34px; padding: 4px 10px; cursor: pointer; background: #3A2F23; color: #F0E2B6; border: 1px solid #120D08; opacity: {{c.op}}; display: flex; align-items: center; gap: 6px; text-decoration: {{c.td}};"><span style="width: 10px; height: 10px; background: {{c.c}}; border: 1px solid #120D08;"></span>{{c.name}}</button>
+        </sc-for>
+      </div>
+
+      <!-- Controls -->
+      <div role="group" aria-label="Canvas controls" style="position: absolute; left: 12px; bottom: 12px; display: flex; flex-direction: column; border: 2px solid #120D08; box-shadow: 0 4px 10px rgba(0,0,0,.4);">
+        <button class="ctl" aria-label="Zoom in" onClick="{{g.zoomIn}}">+</button>
+        <button class="ctl" aria-label="Zoom out" onClick="{{g.zoomOut}}">−</button>
+        <button class="ctl" aria-label="Fit view" onClick="{{g.fit}}"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 6 V2 H6 M12 2 H16 V6 M16 12 V16 H12 M6 16 H2 V12" stroke="#F0E2B6" stroke-width="2" fill="none"></path></svg></button>
+        <button class="ctl" aria-label="Reset layout" onClick="{{g.reset}}" style="border-bottom: 0;"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9 A5 5 0 1 0 6 5 M3 2 V6 H7" stroke="#F0E2B6" stroke-width="2" fill="none"></path></svg></button>
+      </div>
+      <span class="px" style="position: absolute; left: 62px; bottom: 14px; font-size: 16px; color: #A89878; background: rgba(36,28,20,.9); padding: 2px 6px;">{{g.zoomPct}}</span>
+
+      <!-- Minimap -->
+      <div aria-hidden="true" style="position: absolute; right: 12px; bottom: 12px; width: 200px; height: 130px; background: rgba(26,20,14,.94); border: 2px solid #120D08; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,.4);">
+        <sc-for list="{{g.mini}}" as="mm" hint-placeholder-count="0">
+          <span style="position: absolute; left: {{mm.l}}px; top: {{mm.t}}px; width: {{mm.w}}px; height: {{mm.h}}px; background: {{mm.c}}; opacity: .85;"></span>
+        </sc-for>
+        <span style="position: absolute; left: {{g.vp.l}}px; top: {{g.vp.t}}px; width: {{g.vp.w}}px; height: {{g.vp.h}}px; border: 2px solid #E3C26A; background: rgba(227,194,106,.08); box-sizing: border-box;"></span>
+      </div>
+
+      <p style="position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); margin: 0; font-size: 13px; color: #A89878; background: rgba(36,28,20,.9); padding: 4px 10px; white-space: nowrap; pointer-events: none;">Drag to pan · scroll to zoom · drag nodes · double-click to open</p>
+
+      <!-- Inspector -->
+      <sc-if value="{{g.hasSel}}" hint-placeholder-val="{{ false }}">
+        <aside aria-label="Selected discovery" class="parch" style="position: absolute; top: 64px; right: 12px; width: min(310px, calc(100% - 24px)); max-height: calc(100% - 230px); overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; box-shadow: 0 6px 16px rgba(0,0,0,.5);">
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <span class="chip" style="background: {{g.insp.catc}}; color: #120D08;">{{g.insp.cat}}</span>
+            <span class="chip" style="background: {{g.insp.sc}}; color: #120D08;">{{g.insp.status}}</span>
+            <span style="flex: 1;"></span>
+            <button onClick="{{g.insp.close}}" aria-label="Clear selection" style="width: 32px; height: 32px; background: none; border: 1px solid #6B5634; cursor: pointer; font-size: 18px; color: #2E2010;">×</button>
+          </div>
+          <h3 class="px" style="margin: 0; font-size: 24px; font-weight: 400;">{{g.insp.subject}}</h3>
+          <p style="margin: 0; font-size: 15px;">{{g.insp.claim}}</p>
+          <p style="margin: 0; font-size: 13px; color: #4A3820;">By {{g.insp.by}} · last seen {{g.insp.seen}}</p>
+          <h4 class="px" style="margin: 4px 0 0; font-size: 16px; font-weight: 400; color: #6B4A1E;">Connections</h4>
+          <sc-for list="{{g.insp.links}}" as="lk" hint-placeholder-count="2">
+            <button onClick="{{lk.pick}}" style="font: inherit; font-size: 14px; text-align: left; background: #F4ECD3; border: 1px solid #A8956A; padding: 6px 8px; cursor: pointer; display: flex; gap: 6px; align-items: center; min-height: 34px; color: #2E2010;">
+              <span style="width: 8px; height: 8px; background: {{lk.sc}}; border: 1px solid #120D08; flex: none;"></span>
+              <span style="color: #6B4A1E;">{{lk.rel}}</span> {{lk.subject}}
+            </button>
+          </sc-for>
+          <button class="btn" onClick="{{g.insp.open}}" style="margin-top: 4px;">Open details</button>
+        </aside>
+      </sc-if>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"view":{"editor":"enum","options":["list","graph"],"default":"list"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  zoomBy(f, mx, my) {
+    var st = this.state || {};
+    var z = st.zoom || 0.72, p = st.pan || { x: 70, y: 80 };
+    var nz = Math.max(0.3, Math.min(2, z * f));
+    if (mx == null) { mx = (this._cw || 1300) / 2; my = (this._ch || 640) / 2; }
+    this.setState({ zoom: nz, pan: { x: mx - (mx - p.x) * nz / z, y: my - (my - p.y) * nz / z } });
+  }
+  fitView(P) {
+    var ids = Object.keys(P), minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+    ids.forEach(function (id) { var p = P[id]; minx = Math.min(minx, p.x); miny = Math.min(miny, p.y); maxx = Math.max(maxx, p.x + 220); maxy = Math.max(maxy, p.y + 92); });
+    var cw = this._cw || 1300, ch = this._ch || 640;
+    var z = Math.min((cw - 80) / (maxx - minx), (ch - 150) / (maxy - miny), 1.4);
+    this.setState({ zoom: z, pan: { x: (cw - (maxx - minx) * z) / 2 - minx * z, y: (ch - (maxy - miny) * z) / 2 - miny * z + 20 } });
+  }
+  renderVals() {
+    var self = this;
+    var st = this.state || {};
+    var view = st.view || this.props.view || 'list';
+    var stack = st.stack || ['shop-sword'];
+    var SC = { Verified: '#9FD07A', Observed: '#8CC0EA', Hypothesis: '#D2B8F0', Stale: '#C4BBA8', Disproven: '#F0A58C' };
+    var ORDER = ['Verified', 'Observed', 'Hypothesis', 'Stale', 'Disproven'];
+    var CATS = [['Location', 'Locations'], ['Shop', 'Shops'], ['NPC', 'NPCs'], ['Item', 'Items'], ['Procedure', 'Procedures']];
+    var CATC = { Location: '#C8B27A', Shop: '#D9A066', NPC: '#A9C3D9', Item: '#C9B3DE', Procedure: '#A9D1B8' };
+
+    var D = {
+      'loc-field': { cat: 'Location', status: 'Observed', subject: 'Goblin field', claim: 'Goblins roam south-west of the river', by: 'Bram', when: '1d ago', seen: '1d ago', ev: ['event-1980'], rel: ['npc-goblin'], gx: 20, gy: 50 },
+      'loc-town': { cat: 'Location', status: 'Verified', subject: 'Crossroads town', claim: 'Bank, sword shop and general store are here', by: 'Bram', when: '3d ago', seen: '20m ago', ev: ['event-0102'], rel: ['shop-sword', 'shop-gen', 'proc-bank'], gx: 20, gy: 270 },
+      'loc-oaks': { cat: 'Location', status: 'Verified', subject: 'Oak stand', claim: 'Oak trees 14 tiles east of the bank', by: 'Ashgrove', when: '45m ago', seen: '2m ago', ev: ['event-2650'], rel: ['item-oak', 'proc-chop'], gx: 20, gy: 560 },
+      'npc-goblin': { cat: 'NPC', status: 'Verified', subject: 'Goblin', claim: 'Beatable at combat level 10', by: 'Bram', when: '1d ago', seen: '4m ago', ev: ['event-1777', 'event-1980'], rel: ['loc-field'], gx: 330, gy: 20 },
+      'stock-sword': { cat: 'Shop', status: 'Stale', subject: 'Sword shop stock', claim: 'Had 4 iron swords in stock', by: 'Bram', when: '2d ago', seen: '2d ago', ev: ['event-1043'], rel: ['shop-sword'], gx: 330, gy: 140 },
+      'shop-sword': { cat: 'Shop', status: 'Observed', subject: 'Sword shop', claim: 'Sells iron swords', by: 'Bram', when: '2d ago', seen: '3h ago (Ashgrove)', ev: ['event-1042', 'event-1043', 'event-2290'], conf: ['event-2611'], rel: ['item-iron', 'npc-keeper', 'proc-buy', 'stock-sword', 'loc-town'], gx: 330, gy: 260,
+        obs: 'Shop interface opened; “Iron sword” appeared in the stock list with a listed price. Not yet bought, so equip requirements are unknown.',
+        why: 'Needs a repeat observation or a purchase to be verified.',
+        hist: [
+          { dot: '#D9B861', kind: 'GOAL', who: 'Bram', when: '2d ago', text: 'Find a better sword than bronze' },
+          { dot: '#C9A0E8', kind: 'APPROACH', who: 'Bram', when: '2d ago', text: 'Investigate the map-labelled sword shop (inventory unknown)' },
+          { dot: '#8CC0EA', kind: 'OBSERVED', who: 'Bram', when: '2d ago', text: 'Opened the shop; iron sword listed' },
+          { dot: '#F0A58C', kind: 'CONFLICT', who: 'Wren', when: '1d ago', text: 'Item out of stock on one visit — logged as “stock varies”' },
+          { dot: '#8CC0EA', kind: 'REUSED', who: 'Ashgrove', when: '3h ago', text: 'Walked there using this memory; stock list matched' }
+        ] },
+      'npc-keeper': { cat: 'NPC', status: 'Observed', subject: 'Shopkeeper', claim: 'Offers a Trade option', by: 'Bram', when: '2d ago', seen: '3h ago', ev: ['event-1042'], rel: ['shop-sword', 'proc-buy'], gx: 330, gy: 400 },
+      'shop-gen': { cat: 'Shop', status: 'Disproven', subject: 'General store', claim: 'Sells swords', by: 'Wren', when: '2d ago', seen: '2d ago', ev: ['event-1501'], rel: ['loc-town'], gx: 330, gy: 520,
+        why: 'Disproven by a stock-list read; the original guess is kept for history.' },
+      'item-iron': { cat: 'Item', status: 'Hypothesis', subject: 'Iron sword', claim: 'Probably needs a higher Attack level than bronze', by: 'Wren', when: '1d ago', seen: 'never tested', ev: [], rel: ['shop-sword', 'item-bronze'], gx: 640, gy: 190,
+        obs: 'Inferred from the item tier, not observed. No agent has tried to wield one yet.', why: 'Untested — the next agent with an iron sword should try to equip it.' },
+      'item-bronze': { cat: 'Item', status: 'Observed', subject: 'Bronze sword', claim: 'Wieldable at Attack 1', by: 'Ashgrove', when: '1d ago', seen: '1d ago', ev: ['event-2702'], rel: ['item-iron'], gx: 640, gy: 340 },
+      'item-oak': { cat: 'Item', status: 'Verified', subject: 'Oak logs', claim: 'More XP per log than normal logs', by: 'Ashgrove', when: '41m ago', seen: '1m ago', ev: ['event-2701'], rel: ['loc-oaks', 'proc-chop'], gx: 640, gy: 580 },
+      'proc-buy': { cat: 'Procedure', status: 'Verified', subject: 'Buy from a shop', claim: 'Trade → Value → Buy 1 works reliably', by: 'Bram', when: '2d ago', seen: '1d ago', ev: ['event-1042', 'event-1610'], rel: ['shop-sword', 'npc-keeper'], gx: 950, gy: 280 },
+      'proc-bank': { cat: 'Procedure', status: 'Verified', subject: 'Bank a full inventory', claim: 'Walk to bank → Deposit all', by: 'Ashgrove', when: '2h ago', seen: '20m ago', ev: ['event-0911'], rel: ['loc-town', 'proc-chop'], gx: 950, gy: 440 },
+      'proc-chop': { cat: 'Procedure', status: 'Verified', subject: 'Chop oaks', claim: 'Click oak → wait for log → repeat until full', by: 'Ashgrove', when: '41m ago', seen: '1m ago', ev: ['event-2701', 'event-2650'], rel: ['loc-oaks', 'item-oak', 'proc-bank'], gx: 950, gy: 590 }
+    };
+    var E = {
+      'event-0102': { title: 'Map label read: town at crossroads', agent: 'Bram', when: '3d ago', raw: 'type: map_label_seen\nlabels: "Bank", "Sword shop", "General store"\nposition: x 3210 · z 3420 · lvl 0' },
+      'event-1042': { title: 'Shop interface opened', agent: 'Bram', when: '2d ago', raw: 'type: interface_opened\nnpc: Shopkeeper\naction: Trade\nresult: shop window shown' },
+      'event-1043': { title: 'Stock list read: 4 × Iron sword', agent: 'Bram', when: '2d ago', raw: 'type: shop_stock_read\nitems: Bronze sword ×5, Iron sword ×4, …' },
+      'event-2290': { title: 'Stock list read: Iron sword listed', agent: 'Ashgrove', when: '3h ago', raw: 'type: shop_stock_read\nitems: Bronze sword ×5, Iron sword ×3, …' },
+      'event-2611': { title: 'Stock list read: Iron sword out of stock', agent: 'Wren', when: '1d ago', raw: 'type: shop_stock_read\nitems: Bronze sword ×5, Iron sword ×0, …' },
+      'event-1501': { title: 'General store stock read: no swords', agent: 'Wren', when: '2d ago', raw: 'type: shop_stock_read\nitems: Pot, Jug, Tinderbox, Bucket, …' },
+      'event-1777': { title: 'Killed a goblin at combat 10', agent: 'Bram', when: '1d ago', raw: 'type: npc_killed\nnpc: Goblin\nagent combat level: 10\nhp lost: 6' },
+      'event-1980': { title: 'Died at the goblin field', agent: 'Bram', when: '1d ago', raw: 'type: player_death\nlocation: south-west of river\ncarrying: 14 logs' },
+      'event-2702': { title: 'Equipped a bronze sword at Attack 1', agent: 'Ashgrove', when: '1d ago', raw: 'type: item_equipped\nitem: Bronze sword\nattack level: 1\nresult: success' },
+      'event-2701': { title: 'Chopped an oak', agent: 'Ashgrove', when: '41m ago', raw: 'type: xp_gained\nskill: Woodcutting\namount: +37.5\nitem gained: Oak logs' },
+      'event-2650': { title: 'Reached the oak stand', agent: 'Ashgrove', when: '45m ago', raw: 'type: arrived\nroute from bank: 14 tiles\ntrees seen: 6 × Oak' },
+      'event-1610': { title: 'Bought an item from the sword shop', agent: 'Wren', when: '1d ago', raw: 'type: shop_purchase\nitem: Bronze sword\nquantity: 1\nresult: success' },
+      'event-0911': { title: 'Deposited 27 Oak logs', agent: 'Ashgrove', when: '2h ago', raw: 'type: bank_deposit\nitem: Oak logs ×27\nresult: success' }
+    };
+    var ids = Object.keys(D);
+
+    function relLabel(a, b) {
+      var k = [D[a].cat, D[b].cat].sort().join('-');
+      var L = { 'Location-Shop': 'located in', 'Location-NPC': 'found at', 'Location-Procedure': 'done at', 'Item-Location': 'found at', 'Item-Shop': 'sells', 'NPC-Shop': 'runs', 'NPC-Procedure': 'used with', 'Procedure-Shop': 'works at', 'Item-Procedure': 'produces', 'Item-Item': 'compared to', 'Shop-Shop': 'stock of', 'Procedure-Procedure': 'followed by' };
+      return L[k] || 'related';
+    }
+    function go(id) {
+      return function () {
+        var s = (self.state && self.state.stack) || ['shop-sword'];
+        var open = Object.assign({}, (self.state && self.state.open) || {});
+        if (D[id]) open[D[id].cat] = true;
+        self.setState({ stack: s.concat([id]), open: open, view: 'list' });
+      };
+    }
+
+    // ---- Browse tree ----
+    var curId = stack[stack.length - 1];
+    var q = (st.q || '').toLowerCase();
+    var openCats = st.open || { Shop: true };
+    var anyHit = false;
+    var tree = [];
+    CATS.forEach(function (c) {
+      var inCat = ids.filter(function (id) { return D[id].cat === c[0] && (!q || (D[id].subject + ' ' + D[id].claim).toLowerCase().indexOf(q) >= 0); });
+      if (q && !inCat.length) return;
+      if (inCat.length) anyHit = true;
+      var isOpen = q ? true : !!openCats[c[0]];
+      var groups = [];
+      ORDER.forEach(function (s) {
+        var items = inCat.filter(function (id) { return D[id].status === s; }).sort(function (a, b) { return D[a].subject < D[b].subject ? -1 : 1; });
+        if (!items.length) return;
+        groups.push({ label: s.toUpperCase(), c: SC[s], items: items.map(function (id) {
+          var cur = id === curId;
+          return { subject: D[id].subject, go: go(id), cur: cur ? 'page' : 'false',
+            bg: cur ? '#3F3224' : 'transparent', bl: cur ? '#D9B861' : 'transparent',
+            fg: cur ? '#FFF1C4' : (s === 'Disproven' || s === 'Stale' ? '#9C8E72' : '#E9DDB4'),
+            td: s === 'Disproven' ? 'line-through' : 'none', fs: s === 'Hypothesis' ? 'italic' : 'normal' };
+        }) });
+      });
+      tree.push({ label: c[1], n: inCat.length, open: isOpen, rot: isOpen ? 'rotate(90deg)' : 'none', groups: groups,
+        toggle: function () { var o = Object.assign({}, (self.state && self.state.open) || { Shop: true }); o[c[0]] = !isOpen; self.setState({ open: o }); } });
+    });
+
+    // ---- Detail ----
+    var m = { isDisc: false, isEvent: false };
+    if (D[curId]) {
+      var d = D[curId];
+      m = {
+        isDisc: true, isEvent: false, id: curId, status: d.status, sc: SC[d.status], cat: d.cat, subject: d.subject, claim: d.claim, by: d.by, when: d.when, seen: d.seen,
+        obs: d.obs || ('Recorded from ordinary client state by ' + d.by + '. See the evidence events below.'),
+        why: d.why || (d.status === 'Verified' ? 'Confirmed by repeated, reproducible observations.' : 'Seen once; one more independent observation would verify it.'),
+        hist: d.hist || [{ dot: SC[d.status], kind: d.status.toUpperCase(), who: d.by, when: d.when, text: d.claim }],
+        evn: d.ev.length, noEv: d.ev.length === 0,
+        ev: d.ev.map(function (e) { return { id: e, title: E[e].title, go: go(e) }; }),
+        conf: (d.conf || []).map(function (e) { return { id: e, title: E[e].title, go: go(e) }; }),
+        noConf: !(d.conf && d.conf.length),
+        rel: d.rel.map(function (r) { return { subject: D[r].subject, rel: relLabel(curId, r), sc: SC[D[r].status], go: go(r) }; }),
+        showGraph: function () { self.setState({ view: 'graph', sel: curId }); }
+      };
+    } else if (E[curId]) {
+      var ev = E[curId], sup = [];
+      ids.forEach(function (id) {
+        if (D[id].ev.indexOf(curId) >= 0) sup.push({ subject: D[id].subject, sc: SC[D[id].status], tag: '', go: go(id) });
+        if ((D[id].conf || []).indexOf(curId) >= 0) sup.push({ subject: D[id].subject, sc: SC[D[id].status], tag: ' (conflicts)', go: go(id) });
+      });
+      m = { isDisc: false, isEvent: true, id: curId, title: ev.title, agent: ev.agent, when: ev.when, raw: ev.raw, supports: sup };
+    }
+
+    // ---- Node canvas ----
+    var NW = 220, NH = 92, ZOOM0 = 0.72, PAN0 = { x: 70, y: 80 };
+    var hidden = st.hidden || {};
+    var zoom = st.zoom || ZOOM0, pan = st.pan || PAN0, sel = st.sel || null;
+    var P = {};
+    ids.forEach(function (id) { var o = (st.pos || {})[id]; P[id] = o || { x: Math.round(D[id].gx * 1.45), y: Math.round(D[id].gy * 1.3) }; });
+    var seenE = {}, pairs = [];
+    ids.forEach(function (a) { D[a].rel.forEach(function (b) { var k = a < b ? a + '|' + b : b + '|' + a; if (seenE[k] || !D[b]) return; seenE[k] = 1; pairs.push([a, b]); }); });
+    var neigh = {};
+    pairs.forEach(function (pr) { if (pr[0] === sel) neigh[pr[1]] = 1; if (pr[1] === sel) neigh[pr[0]] = 1; });
+    var edges = pairs.map(function (pr) {
+      var a = pr[0], b = pr[1], A = P[a], B = P[b], sx, sy, tx, ty, dd;
+      if (Math.abs(A.x - B.x) > 90) {
+        var Lf = A.x < B.x ? A : B, Rt = A.x < B.x ? B : A;
+        sx = Lf.x + NW; sy = Lf.y + NH / 2; tx = Rt.x; ty = Rt.y + NH / 2;
+        var c = Math.max(50, (tx - sx) / 2);
+        dd = 'M' + sx + ' ' + sy + ' C' + (sx + c) + ' ' + sy + ' ' + (tx - c) + ' ' + ty + ' ' + tx + ' ' + ty;
+      } else {
+        var Tp = A.y < B.y ? A : B, Bt = A.y < B.y ? B : A;
+        sx = Tp.x + NW / 2; sy = Tp.y + NH; tx = Bt.x + NW / 2; ty = Bt.y;
+        var c2 = Math.max(30, Math.abs(ty - sy) / 2);
+        dd = 'M' + sx + ' ' + sy + ' C' + sx + ' ' + (sy + c2) + ' ' + tx + ' ' + (ty - c2) + ' ' + tx + ' ' + ty;
+      }
+      var on = sel && (a === sel || b === sel), off = (sel && !on) || hidden[D[a].cat] || hidden[D[b].cat];
+      return { d: dd, stroke: on ? '#E3C26A' : (off ? '#43372A' : '#9A8260'), sw: on ? 3 : 2, cls: on ? 'flow' : '', lx: Math.round((sx + tx) / 2), ly: Math.round((sy + ty) / 2), label: relLabel(a, b),
+        lc: on ? '#FFF1C4' : (off ? '#5E513E' : '#CDBF9C'), lb: on ? '#E3C26A' : '#3A2F23' };
+    });
+    var gnodes = ids.map(function (id) {
+      var d = D[id], p = P[id], isSel = id === sel;
+      return { x: p.x, y: p.y, cat: d.cat, hbg: CATC[d.cat], status: d.status, sc: SC[d.status], subject: d.subject, claim: d.claim, sel: isSel,
+        bs: d.status === 'Disproven' ? 'dashed' : 'solid', border: isSel ? '#E3C26A' : '#120D08',
+        shadow: isSel ? '0 0 0 4px rgba(227,194,106,.35), 0 8px 18px rgba(0,0,0,.55)' : '0 4px 10px rgba(0,0,0,.45)',
+        op: hidden[d.cat] ? 0.18 : (sel && !isSel && !neigh[id] ? 0.45 : 1),
+        down: function (e) {
+          if (e.button !== 0) return; e.stopPropagation();
+          try { e.currentTarget.setPointerCapture(e.pointerId); } catch (x) {}
+          self._drag = { mode: 'node', id: id, sx: e.clientX, sy: e.clientY, ox: p.x, oy: p.y, moved: false };
+        },
+        click: function () { if (self._suppress) { self._suppress = false; return; } self.setState({ sel: id }); },
+        dbl: go(id) };
+    });
+    var minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+    ids.forEach(function (id) { var p = P[id]; minx = Math.min(minx, p.x); miny = Math.min(miny, p.y); maxx = Math.max(maxx, p.x + NW); maxy = Math.max(maxy, p.y + NH); });
+    var ms = Math.min(188 / (maxx - minx), 118 / (maxy - miny));
+    var mini = ids.map(function (id) { return { l: Math.round((P[id].x - minx) * ms + 6), t: Math.round((P[id].y - miny) * ms + 6), w: Math.max(4, Math.round(NW * ms)), h: Math.max(3, Math.round(NH * ms)), c: id === sel ? '#E3C26A' : SC[D[id].status] }; });
+    var cw = self._cw || 1300, ch = self._ch || 640;
+    var vp = { l: Math.round((-pan.x / zoom - minx) * ms + 6), t: Math.round((-pan.y / zoom - miny) * ms + 6), w: Math.round(cw / zoom * ms), h: Math.round(ch / zoom * ms) };
+    var insp = { links: [] };
+    if (sel) {
+      var sd = D[sel];
+      insp = { subject: sd.subject, cat: sd.cat, catc: CATC[sd.cat], status: sd.status, sc: SC[sd.status], claim: sd.claim, by: sd.by, seen: sd.seen, open: go(sel),
+        close: function () { self.setState({ sel: null }); },
+        links: pairs.filter(function (pr) { return pr[0] === sel || pr[1] === sel; }).map(function (pr) {
+          var o = pr[0] === sel ? pr[1] : pr[0];
+          return { subject: D[o].subject, rel: relLabel(pr[0], pr[1]), sc: SC[D[o].status], pick: function () { self.setState({ sel: o }); } };
+        }) };
+    }
+    var g = {
+      canvasRef: function (el) {
+        if (!el) return;
+        self._cw = el.clientWidth; self._ch = el.clientHeight;
+        if (el._wz) return; el._wz = 1;
+        el.addEventListener('wheel', function (e) { e.preventDefault(); var r = el.getBoundingClientRect(); self.zoomBy(e.deltaY < 0 ? 1.1 : 1 / 1.1, e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+      },
+      bgDown: function (e) {
+        if (e.button !== 0) return;
+        var p0 = (self.state && self.state.pan) || PAN0;
+        self._drag = { mode: 'pan', sx: e.clientX, sy: e.clientY, ox: p0.x, oy: p0.y, moved: false };
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch (x) {}
+        self.setState({ panning: true });
+      },
+      move: function (e) {
+        var dr = self._drag; if (!dr) return;
+        var dx = e.clientX - dr.sx, dy = e.clientY - dr.sy;
+        if (Math.abs(dx) + Math.abs(dy) > 3) dr.moved = true;
+        if (!dr.moved) return;
+        if (dr.mode === 'pan') self.setState({ pan: { x: dr.ox + dx, y: dr.oy + dy } });
+        else {
+          var z = (self.state && self.state.zoom) || ZOOM0;
+          var pos = Object.assign({}, (self.state && self.state.pos) || {});
+          pos[dr.id] = { x: Math.round(dr.ox + dx / z), y: Math.round(dr.oy + dy / z) };
+          self.setState({ pos: pos });
+        }
+      },
+      up: function () {
+        var dr = self._drag; self._drag = null;
+        if (dr && dr.mode === 'node' && dr.moved) self._suppress = true;
+        if (dr && dr.mode === 'pan' && !dr.moved) self.setState({ sel: null, panning: false });
+        else self.setState({ panning: false });
+      },
+      cursor: st.panning ? 'grabbing' : 'grab',
+      grid: Math.round(22 * zoom * 10) / 10, px: Math.round(pan.x), py: Math.round(pan.y), zoom: zoom, zoomPct: Math.round(zoom * 100) + '%',
+      edges: edges, nodes: gnodes, mini: mini, vp: vp, hasSel: !!sel, insp: insp,
+      cats: CATS.map(function (c) { var off = !!hidden[c[0]]; return { name: c[1], c: CATC[c[0]], on: !off, op: off ? 0.55 : 1, td: off ? 'line-through' : 'none',
+        toggle: function () { var h = Object.assign({}, (self.state && self.state.hidden) || {}); h[c[0]] = !h[c[0]]; self.setState({ hidden: h }); } }; }),
+      zoomIn: function () { self.zoomBy(1.2); }, zoomOut: function () { self.zoomBy(1 / 1.2); },
+      fit: function () { self.fitView(P); },
+      reset: function () { self.setState({ pos: {}, zoom: ZOOM0, pan: PAN0, sel: null }); }
+    };
+
+    var A = [
+      { name: 'All agents', dot: '#D9B861', activity: 'Show discoveries from every agent' },
+      { name: 'Ashgrove', dot: '#8FD16A', activity: 'Chopping oaks · online' },
+      { name: 'Bram', dot: '#8FD16A', activity: 'Training Defence · online' },
+      { name: 'Wren', dot: '#E0A040', activity: 'Reconnecting' }
+    ];
+    var agentName = st.agent || 'All agents';
+
+    return {
+      isList: view === 'list', isGraph: view === 'graph',
+      setList: function () { self.setState({ view: 'list' }); },
+      setGraph: function () { self.setState({ view: 'graph' }); },
+      listBg: view === 'list' ? '#6B5434' : '#4A3B2B', listFg: view === 'list' ? '#FFF1C4' : '#CDBF9C',
+      graphBg: view === 'graph' ? '#6B5434' : '#4A3B2B', graphFg: view === 'graph' ? '#FFF1C4' : '#CDBF9C',
+      count: ids.length,
+      onQ: function (e) { self.setState({ q: e.target.value }); },
+      tree: tree, noResults: !anyHit,
+      m: m,
+      canBack: stack.length > 1,
+      crumbs: stack.slice(-4).map(function (id, i) { return { label: D[id] ? D[id].subject : id, sep: i ? '› ' : '' }; }),
+      back: function () { self.setState({ stack: stack.slice(0, -1) }); },
+      g: g,
+      menuOpen: !!st.menuOpen,
+      toggleMenu: function () { self.setState({ menuOpen: !st.menuOpen }); },
+      curAgent: A.filter(function (a) { return a.name === agentName; })[0],
+      agents: A.map(function (a) {
+        var sel2 = a.name === agentName;
+        return Object.assign({}, a, { sel: sel2, bg: sel2 ? '#5A4630' : '#2A2119', pick: function () { self.setState({ agent: a.name, menuOpen: false }); } });
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

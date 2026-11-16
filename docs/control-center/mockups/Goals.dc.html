@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Goal Explorer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&amp;family=Source+Sans+3:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1A140E}
+:focus-visible{outline:2px solid #F2D35B;outline-offset:2px}
+a{color:#E3C26A}a:hover{color:#F6DFA0}
+@font-face{font-family:'RSPlain';src:url(/_blob/af060588e34f85becf9b1d3a8834c275) format('woff2'),url(/_blob/95d0e990b32d4c3f66f2edf8bbce9dc8) format('woff');font-display:swap}
+.px{font-family:'RSPlain','Pixelify Sans',ui-monospace,monospace;font-synthesis:none}
+.panel{background:#3A2F23;border:2px solid #120D08;box-shadow:inset 2px 2px 0 #6E5A3D,inset -2px -2px 0 #231B12}
+.parch{background:#E8DCB8;color:#2E2010;border:2px solid #6B5634;box-shadow:inset 0 0 0 2px #F4ECD3}
+.btn{font-family:'RSPlain','Pixelify Sans',monospace;font-synthesis:none;font-size:16px;color:#F0E2B6;background:#4A3B2B;border:2px solid #120D08;box-shadow:inset 2px 2px 0 #7E6848,inset -2px -2px 0 #2A2016;padding:8px 14px;min-height:40px;cursor:pointer}
+.chip{font-family:'RSPlain','Pixelify Sans',monospace;font-synthesis:none;font-size:16px;line-height:1.1;padding:2px 8px;border:1px solid #120D08;white-space:nowrap}
+.tnode{width:100%;text-align:left;font:inherit;cursor:pointer;color:#F0E2B6;padding:8px 10px;display:flex;flex-direction:column;gap:4px;min-height:48px;box-sizing:border-box}
+.tnode:hover{filter:brightness(1.12)}
+.ptab{font-family:'RSPlain','Pixelify Sans',monospace;font-synthesis:none;font-size:16px;background:none;border:0;border-bottom:3px solid transparent;color:#CDBF9C;padding:8px 4px;min-height:40px;cursor:pointer}
+@media (min-width: 900px){ .docrow{height:calc(100vh - 116px)} .scrollpane{overflow-y:auto} }
+</style>
+</helmet>
+<div style="min-height: 100vh; box-sizing: border-box; background: #1A140E; color: #F0E2B6; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 16px; display: flex; flex-direction: column;">
+
+  <header class="panel" style="position: relative; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; padding: 10px 20px; border-left: 0; border-right: 0; border-top: 0; min-height: 64px; box-sizing: border-box;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="3" y="3" width="22" height="22" fill="#2A2119" stroke="#D9B861" stroke-width="2"></rect><path d="M8 19 L14 8 L20 19 Z" fill="none" stroke="#D9B861" stroke-width="2"></path></svg>
+      <span class="px" style="font-size: 24px; color: #D9B861;">Control Center</span>
+    </div>
+    <nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap;">
+      <a href="Main.dc.html" class="btn" style="text-decoration: none; display: inline-flex; align-items: center;">Agent View</a>
+      <a href="Discovery.dc.html" class="btn" style="text-decoration: none; display: inline-flex; align-items: center;">Discoveries</a>
+      <a href="Goals.dc.html" class="btn" style="text-decoration: none; background: #6B5434; color: #FFF1C4; display: inline-flex; align-items: center;" aria-current="page">Goals</a>
+    </nav>
+    <div style="flex: 1 1 40px;"></div>
+    <div class="px" style="font-size: 16px; color: #CDBF9C; display: flex; align-items: center; gap: 8px;">
+      <span style="width: 8px; height: 8px; background: #8FD16A; border-radius: 50%;"></span>Live · 3s ago
+    </div>
+    <div style="position: relative;">
+      <button class="btn" onClick="{{toggleMenu}}" aria-haspopup="listbox" aria-expanded="{{menuOpen}}" style="display: flex; align-items: center; gap: 10px; min-width: 200px; justify-content: space-between;">
+        <span style="display: flex; align-items: center; gap: 8px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: {{cur.dot}}; border: 1px solid #120D08;"></span><span style="color: #A89878;">Agent:</span> {{cur.name}}</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4 L6 8 L10 4" stroke="#D9B861" stroke-width="2" fill="none"></path></svg>
+      </button>
+      <sc-if value="{{menuOpen}}" hint-placeholder-val="{{ false }}">
+        <ul role="listbox" aria-label="Select agent" class="panel" style="position: absolute; right: 0; top: calc(100% + 6px); width: 300px; margin: 0; padding: 6px; list-style: none; display: flex; flex-direction: column; gap: 4px; z-index: 40;">
+          <sc-for list="{{agents}}" as="a" hint-placeholder-count="3">
+            <li>
+              <button role="option" aria-selected="{{a.sel}}" onClick="{{a.pick}}" style="width: 100%; text-align: left; font: inherit; cursor: pointer; background: {{a.bg}}; color: #F0E2B6; border: 1px solid #120D08; padding: 8px 10px; display: flex; gap: 10px; align-items: flex-start; min-height: 44px;">
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: {{a.dot}}; border: 1px solid #120D08; margin-top: 5px; flex: none;"></span>
+                <span style="display: flex; flex-direction: column; gap: 2px;">
+                  <span class="px" style="font-size: 16px;">{{a.name}}</span>
+                  <span style="font-size: 13px; color: #CDBF9C;">{{a.activity}}</span>
+                </span>
+              </button>
+            </li>
+          </sc-for>
+        </ul>
+      </sc-if>
+    </div>
+  </header>
+
+  <!-- Sub bar -->
+  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 6px 20px; min-height: 52px; box-sizing: border-box; background: #241C14; border-bottom: 2px solid #120D08;">
+    <span class="px" style="font-size: 20px; color: #D9B861;">Goals</span>
+    <span style="font-size: 14px; color: #A89878;">{{cur.name}} · 1 master goal · 3 active branches</span>
+    <div style="flex: 1 1 20px;"></div>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; font-size: 14px; color: #CDBF9C;">
+      <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #9FD07A; border: 1px solid #120D08;"></span>Backed by evidence</span>
+      <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #F2D35B; border: 1px solid #120D08;"></span>Agent’s hypothesis</span>
+    </div>
+  </div>
+
+  <div class="docrow" style="flex: 1; display: flex; flex-wrap: wrap; min-height: 0;">
+
+    <!-- Tree -->
+    <nav aria-label="Goal tree" class="scrollpane" style="flex: 1 1 380px; max-height: 100%; min-width: 0; box-sizing: border-box; background: #221A12; border-right: 2px solid #120D08; padding: 14px 14px 20px;">
+      <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;">
+        <sc-for list="{{nodes}}" as="n" hint-placeholder-count="8">
+          <li style="position: relative; padding: 4px 0 4px {{n.indent}}px;">
+            <sc-for list="{{n.guides}}" as="gd" hint-placeholder-count="0">
+              <span aria-hidden="true" style="position: absolute; left: {{gd.x}}px; top: {{gd.top}}; height: {{gd.h}}; width: {{gd.w}}px; border-left: 2px solid #5A4A36; border-bottom: {{gd.bb}};"></span>
+            </sc-for>
+            <button class="tnode" onClick="{{n.pick}}" aria-current="{{n.cur}}" style="background: {{n.bg}}; border: 2px solid {{n.bd}};">
+              <span style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <span class="chip" style="background: {{n.kbg}}; color: #120D08;">{{n.kind}}</span>
+                <span style="font-weight: 600; font-size: 15px;">{{n.title}}</span>
+              </span>
+              <span style="display: flex; gap: 8px; align-items: center; font-size: 13px; color: #CDBF9C;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: {{n.src}}; border: 1px solid #120D08; flex: none;"></span>{{n.note}}
+              </span>
+            </button>
+          </li>
+        </sc-for>
+      </ul>
+    </nav>
+
+    <!-- Detail -->
+    <main class="scrollpane" style="flex: 999 1 560px; min-width: 0; max-height: 100%; box-sizing: border-box; padding: 12px clamp(16px, 4vw, 48px) 32px;">
+      <div style="max-width: 860px; display: flex; flex-direction: column; gap: 18px;">
+        <div role="tablist" aria-label="Detail views" style="display: flex; gap: 20px; border-bottom: 2px solid #3A2F23;">
+          <button role="tab" class="ptab" aria-selected="{{isDec}}" onClick="{{showDec}}" style="color: {{decFg}}; border-bottom-color: {{decBb}};">Decision record</button>
+          <button role="tab" class="ptab" aria-selected="{{isNudge}}" onClick="{{showNudge}}" style="color: {{nudFg}}; border-bottom-color: {{nudBb}};">Nudges (4)</button>
+        </div>
+
+        <!-- Decision record -->
+        <sc-if value="{{isDec}}" hint-placeholder-val="{{ true }}">
+          <article style="display: flex; flex-direction: column; gap: 18px;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <span class="chip" style="background: {{d.kbg}}; color: #120D08;">{{d.kind}}</span>
+              <span class="chip" style="background: #3A2F23; color: #CDBF9C;">{{d.state}}</span>
+              <span style="flex: 1;"></span>
+              <span class="px" style="font-size: 16px; color: #A89878;">{{d.id}} · {{d.when}}</span>
+            </div>
+            <header style="display: flex; flex-direction: column; gap: 6px; border-bottom: 2px solid #3A2F23; padding-bottom: 14px;">
+              <h1 class="px" style="margin: 0; font-size: 32px; font-weight: 400; color: #F6EACB;">{{d.title}}</h1>
+              <p style="margin: 0; font-size: 14px; color: #A89878;">Parent: {{d.parent}}</p>
+            </header>
+
+            <sc-if value="{{d.hasWarn}}" hint-placeholder-val="{{ false }}">
+              <div style="background: #3A2A14; border: 2px dashed #C9963A; padding: 10px 14px; font-size: 15px; line-height: 1.5; color: #F0D79A;"><strong>Unverified link:</strong> {{d.warn}}</div>
+            </sc-if>
+
+            <section style="display: flex; flex-direction: column; gap: 6px;">
+              <h2 class="px" style="margin: 0; font-size: 20px; font-weight: 400; color: #D9B861;">Why</h2>
+              <p style="margin: 0; font-size: 17px; line-height: 1.55;">{{d.why}}</p>
+            </section>
+
+            <section style="display: flex; flex-direction: column; gap: 8px;">
+              <h2 class="px" style="margin: 0; font-size: 20px; font-weight: 400; color: #D9B861;">Options considered</h2>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px;">
+                <sc-for list="{{d.alts}}" as="al" hint-placeholder-count="3">
+                  <div style="background: #2A2119; border: 2px solid {{al.bd}}; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px;">
+                    <span class="px" style="font-size: 16px; color: {{al.tagc}};">{{al.tag}}</span>
+                    <strong style="font-size: 15px;">{{al.t}}</strong>
+                    <span style="font-size: 14px; color: #CDBF9C;">{{al.note}}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </section>
+
+            <section class="parch" style="padding: 16px 18px; display: flex; gap: 20px; flex-wrap: wrap;">
+              <div style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 6px;">
+                <h2 class="px" style="margin: 0; font-size: 20px; font-weight: 400; color: #6B4A1E;">Evidence</h2>
+                <ul style="margin: 0; padding-left: 18px; font-size: 15px; display: flex; flex-direction: column; gap: 4px;">
+                  <sc-for list="{{d.ev}}" as="e" hint-placeholder-count="2">
+                    <li><a href="Discovery.dc.html" style="color: #6B3E0E;">{{e}}</a></li>
+                  </sc-for>
+                </ul>
+              </div>
+              <div style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 6px;">
+                <h2 class="px" style="margin: 0; font-size: 20px; font-weight: 400; color: #6B4A1E;">Stop or review when</h2>
+                <ul style="margin: 0; padding-left: 18px; font-size: 15px; display: flex; flex-direction: column; gap: 4px;">
+                  <sc-for list="{{d.stops}}" as="s" hint-placeholder-count="2">
+                    <li>{{s}}</li>
+                  </sc-for>
+                </ul>
+              </div>
+            </section>
+            <a href="Main.dc.html" style="font-size: 15px;">See this in {{cur.name}}’s timeline</a>
+          </article>
+        </sc-if>
+
+        <!-- Nudges -->
+        <sc-if value="{{isNudge}}" hint-placeholder-val="{{ false }}">
+          <section style="display: flex; flex-direction: column; gap: 14px;">
+            <p style="margin: 0; font-size: 15px; color: #CDBF9C; line-height: 1.5;">Nudges are advice, not commands. {{cur.name}} weighs each one at the next approach review and records what it decided and why.</p>
+            <div class="parch" style="padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+              <label for="nudge" class="px" style="font-size: 16px; color: #6B4A1E;">Suggest something to {{cur.name}}</label>
+              <textarea id="nudge" rows="2" placeholder="e.g. Your Defence is low; consider a safer enemy to train on." style="font: inherit; font-size: 15px; padding: 8px 10px; background: #F4ECD3; color: #2E2010; border: 2px solid #6B5634; resize: vertical;"></textarea>
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 13px; color: #4A3820;">Considered at next review · in 6m</span>
+                <button class="btn">Send nudge</button>
+              </div>
+            </div>
+            <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px;">
+              <sc-for list="{{nudges}}" as="u" hint-placeholder-count="4">
+                <li style="background: #2A2119; border: 1px solid #120D08; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;">
+                  <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <span class="chip" style="background: {{u.bg}}; color: #120D08;">{{u.out}}</span>
+                    <span style="font-size: 13px; color: #A89878;">{{u.when}}</span>
+                  </div>
+                  <p style="margin: 0; font-size: 16px; color: #F6EACB;">“{{u.text}}”</p>
+                  <p style="margin: 0; font-size: 15px; color: #CDBF9C; line-height: 1.45;"><span class="px" style="font-size: 16px; color: #D9B861;">Reply:</span> {{u.why}}</p>
+                </li>
+              </sc-for>
+            </ul>
+          </section>
+        </sc-if>
+
+        <p style="margin: 24px 0 0; font-size: 13px; color: #A89878; border-top: 1px solid #3A2F23; padding-top: 10px;">Sample data — dependencies shown are illustrative, not verified game facts. Fonts made from <a href="http://www.onlinewebfonts.com">Web Fonts</a> is licensed by CC BY 4.0.</p>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var self = this;
+    var st = this.state || {};
+    var A = [
+      { name: 'Ashgrove', dot: '#8FD16A', activity: 'Chopping oaks · online' },
+      { name: 'Bram', dot: '#8FD16A', activity: 'Training Defence · online' },
+      { name: 'Wren', dot: '#E0A040', activity: 'Reconnecting' }
+    ];
+    var agentName = st.agent || 'Bram';
+    var K = { 'Master goal': '#D9B861', 'Hypothesis': '#F2D35B', 'Subgoal': '#E8C09A', 'Approach': '#C9A0E8', 'Execution': '#8CC0EA' };
+    var IND = 26;
+
+    var N = [
+      { id: 'G-001', depth: 0, kind: 'Master goal', title: 'Complete Dragon Slayer', note: 'Set 3d ago · quest journal entry seen', src: true, state: 'Active', when: '3d ago',
+        why: 'The quest journal lists it, and working toward it means combat, gathering and exploring at the same time — a good long-term direction.',
+        alts: [{ t: 'Complete Dragon Slayer', note: 'Broad; touches many skills', chosen: true }, { t: 'Max Woodcutting first', note: 'Narrow; little discovery' }, { t: 'Visit every labelled shop', note: 'Good discovery, no clear finish' }],
+        ev: ['Quest journal entry (event-0420)'], stops: ['A major milestone is reached', 'Three dead ends in a row', 'Hypothesis below is disproven'] },
+      { id: 'H-014', depth: 1, kind: 'Hypothesis', title: 'Improve Defence before a difficult fight', note: 'Unverified · based on 2 deaths', src: false, state: 'Testing', when: '1d ago',
+        warn: '“Higher Defence is needed before the quest’s hardest fight” is Bram’s guess, not a confirmed requirement.',
+        why: 'Two deaths against tougher enemies suggest low Defence is the weak point.',
+        alts: [{ t: 'Raise Defence', note: 'Addresses both deaths', chosen: true }, { t: 'Better armour', note: 'No armour shop found yet' }, { t: 'Carry more food', note: 'Helps, but doesn’t fix the cause' }],
+        ev: ['Death at goblin field (event-1980)', 'Death near the river (event-2104)'], stops: ['Defence 20 reached', 'Quest requirements found and they disagree'] },
+      { id: 'D-231', depth: 2, kind: 'Approach', title: 'Train Defence on a discovered safe enemy', note: 'Active · reviewed 4m ago', src: false, state: 'Active', when: '18m ago',
+        warn: 'Depends on the Defence hypothesis above.',
+        why: 'Training on an enemy Bram has already beaten 40 times is low-risk, and the bank is close for food.',
+        alts: [{ t: 'Safe enemy nearby', note: 'Low risk · slow XP', chosen: true }, { t: 'Guards in town', note: 'Faster · untested risk' }, { t: 'Buy armour first', note: 'No shop found yet' }],
+        ev: ['Goblin is beatable at combat 10 (memory-077)', 'Deaths (event-1980, event-2104)'], stops: ['Defence 20 reached', 'HP below 40% with no food', '60 minutes pass'] },
+      { id: 'X-231', depth: 3, kind: 'Execution', title: 'Navigate → Attack → Observe → Recover', note: 'Running · 0 failures', src: true, state: 'Running', when: 'now',
+        why: 'A deterministic loop handles each fight; no model calls per action.',
+        alts: [{ t: 'Deterministic combat loop', note: 'Cheap, predictable', chosen: true }, { t: 'Ask the model each fight', note: 'Slow and costly' }],
+        ev: ['Loop has run 42 cycles without failure'], stops: ['Any action fails 3 times', 'Approach review'] },
+      { id: 'S-006', depth: 1, kind: 'Subgoal', title: 'Investigate quest entry requirements', note: 'Queued · talk to quest-giver again', src: true, state: 'Queued', when: '1d ago',
+        why: 'The real requirements would confirm or kill the Defence hypothesis.',
+        alts: [{ t: 'Ask the quest-giver again', note: 'Direct source', chosen: true }, { t: 'Guess from other quests', note: 'Unreliable' }],
+        ev: ['First conversation cut short (event-0433)'], stops: ['Requirements recorded as a discovery'] },
+      { id: 'D-240', depth: 2, kind: 'Approach', title: 'Re-read quest dialogue for requirements', note: 'Not started', src: true, state: 'Not started', when: '—',
+        why: 'Planned for after the current Defence session.',
+        alts: [{ t: 'Re-read dialogue', note: 'Cheap, firsthand', chosen: true }], ev: ['—'], stops: ['Dialogue fully read'] },
+      { id: 'S-003', depth: 1, kind: 'Subgoal', title: 'Get a better weapon', note: 'Done · iron sword bought', src: true, state: 'Done', when: '2d ago',
+        why: 'A stronger weapon speeds up every combat goal.',
+        alts: [{ t: 'Find a sword shop', note: 'Map shows one', chosen: true }, { t: 'Loot from enemies', note: 'Slow, random' }],
+        ev: ['Sword shop sells iron swords (memory-118)'], stops: ['Weapon better than bronze equipped'] },
+      { id: 'D-190', depth: 2, kind: 'Approach', title: 'Investigate the map-labelled sword shop', note: 'Finished · produced memory-118', src: true, state: 'Done', when: '2d ago',
+        why: 'The map labels a sword shop, but nobody knew what it sold — worth a visit.',
+        alts: [{ t: 'Visit the labelled shop', note: 'Close, unknown stock', chosen: true }, { t: 'Try the general store', note: 'Later disproven' }],
+        ev: ['Shop interface opened (event-1042)', 'Stock list read (event-1043)'], stops: ['Stock list recorded'] }
+    ];
+
+    var selId = st.sel || 'D-231';
+    var nodes = N.map(function (n, i) {
+      // has a later sibling at the same depth before a shallower node?
+      function hasNext(idx) {
+        var dpt = N[idx].depth;
+        for (var j = idx + 1; j < N.length; j++) { if (N[j].depth < dpt) return false; if (N[j].depth === dpt) return true; }
+        return false;
+      }
+      var guides = [];
+      if (n.depth > 0) {
+        // ancestor continuation lines
+        for (var L = 1; L < n.depth; L++) {
+          var anc = -1;
+          for (var j = i - 1; j >= 0; j--) { if (N[j].depth === L) { anc = j; break; } }
+          if (anc >= 0 && hasNext(anc)) guides.push({ x: (L - 1) * IND + 10, top: '0', h: '100%', w: 0, bb: '0' });
+        }
+        var ex = (n.depth - 1) * IND + 10;
+        guides.push({ x: ex, top: '0', h: '50%', w: IND - 12, bb: '2px solid #5A4A36' });
+        if (hasNext(i)) guides.push({ x: ex, top: '50%', h: '50%', w: 0, bb: '0' });
+      }
+      var cur = n.id === selId;
+      return { indent: n.depth * IND, guides: guides, kind: n.kind, kbg: K[n.kind], title: n.title, note: n.note,
+        src: n.src ? '#9FD07A' : '#F2D35B', cur: cur ? 'page' : 'false', bg: cur ? '#4A3B2B' : '#2A2119', bd: cur ? '#D9B861' : '#120D08',
+        pick: function () { self.setState({ sel: n.id, pane: 'dec' }); } };
+    });
+
+    var s = N.filter(function (n) { return n.id === selId; })[0];
+    var idx = N.indexOf(s), parent = 'none (top level)';
+    for (var j = idx - 1; j >= 0; j--) { if (N[j].depth < s.depth) { parent = N[j].kind + ' — ' + N[j].title; break; } }
+    var d = { id: s.id, kind: s.kind, kbg: K[s.kind], title: s.title, state: s.state, when: s.when, parent: parent,
+      hasWarn: !!s.warn, warn: s.warn || '', why: s.why, ev: s.ev, stops: s.stops,
+      alts: s.alts.map(function (a) { return { t: a.t, note: a.note, tag: a.chosen ? 'Chosen' : 'Considered', tagc: a.chosen ? '#8FD16A' : '#A89878', bd: a.chosen ? '#8FD16A' : '#120D08' }; }) };
+
+    var pane = st.pane || 'dec';
+    return {
+      nodes: nodes, d: d,
+      isDec: pane === 'dec', isNudge: pane === 'nudge',
+      showDec: function () { self.setState({ pane: 'dec' }); }, showNudge: function () { self.setState({ pane: 'nudge' }); },
+      decFg: pane === 'dec' ? '#FFF1C4' : '#CDBF9C', decBb: pane === 'dec' ? '#D9B861' : 'transparent',
+      nudFg: pane === 'nudge' ? '#FFF1C4' : '#CDBF9C', nudBb: pane === 'nudge' ? '#D9B861' : 'transparent',
+      nudges: [
+        { when: '18m ago', text: 'Your Defence is low; consider fighting guards to train it.', out: 'Modified', bg: '#E8C09A', why: 'Agreed Defence is the priority, but chose a safer enemy I’ve already tested instead of guards.' },
+        { when: '2h ago', text: 'There is a shop north of the bank.', out: 'Investigate', bg: '#8CC0EA', why: 'I haven’t seen it myself yet; I’ve queued a visit for my next free window.' },
+        { when: '1d ago', text: 'Go fight the dragon now.', out: 'Rejected', bg: '#F0A58C', why: 'My combat level is far below anything I’ve seen to be safe. Repeats of this nudge are muted.' },
+        { when: '1d ago', text: 'Bank your logs before they pile up.', out: 'Accepted', bg: '#9FD07A', why: 'Matches the slowdowns I saw when my inventory filled up.' }
+      ],
+      menuOpen: !!st.menuOpen,
+      toggleMenu: function () { self.setState({ menuOpen: !st.menuOpen }); },
+      cur: A.filter(function (a) { return a.name === agentName; })[0],
+      agents: A.map(function (a) {
+        var sel = a.name === agentName;
+        return Object.assign({}, a, { sel: sel, bg: sel ? '#5A4630' : '#2A2119', pick: function () { self.setState({ agent: a.name, menuOpen: false }); } });
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

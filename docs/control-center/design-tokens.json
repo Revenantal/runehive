@@ -1,0 +1,155 @@
+{
+  "$schema": "draft — Control Center design tokens (not final)",
+  "meta": {
+    "status": "draft",
+    "source": "Control Center mock-ups, 2026-11-12",
+    "humanDocs": "branding.md",
+    "notes": [
+      "Dark-first theme inspired by 2004-era game clients; original assets only.",
+      "Status and category colors are semantic and must always be paired with a text label.",
+      "Pixel font sizes should be multiples of 16px (16, 32) or 20/24 for headings; never synthesize bold."
+    ]
+  },
+  "color": {
+    "bg": {
+      "app": "#1A140E",
+      "sunken": "#221A12",
+      "subbar": "#241C14",
+      "well": "#2A2119",
+      "panel": "#3A2F23",
+      "panelHi": "#4A3B2B",
+      "selected": "#6B5434",
+      "selectedRow": "#3F3224",
+      "stone": "#4B4236",
+      "slot": "#3A3127",
+      "slotFilled": "#4A3E30",
+      "overlay": "rgba(32,24,16,0.9)"
+    },
+    "parchment": { "base": "#E8DCB8", "light": "#F4ECD3", "header": "#D9CBA2" },
+    "line": {
+      "outer": "#120D08",
+      "bevelLight": "#6E5A3D",
+      "bevelDark": "#231B12",
+      "divider": "#4C3E2C",
+      "parchment": "#6B5634",
+      "stoneLight": "#6B5E4A",
+      "stoneDark": "#2A231A"
+    },
+    "text": {
+      "primary": "#F0E2B6",
+      "strong": "#F6EACB",
+      "onSelected": "#FFF1C4",
+      "secondary": "#CDBF9C",
+      "muted": "#A89878",
+      "ink": "#2E2010",
+      "inkMuted": "#4A3820",
+      "inkLabel": "#6B4A1E",
+      "inkLink": "#6B3E0E",
+      "gameYellow": "#FFE14D"
+    },
+    "accent": {
+      "gold": "#D9B861",
+      "goldBright": "#E3C26A",
+      "goldHover": "#F6DFA0",
+      "focusRing": "#F2D35B"
+    },
+    "status": {
+      "verified": "#9FD07A",
+      "observed": "#8CC0EA",
+      "hypothesis": "#D2B8F0",
+      "stale": "#C4BBA8",
+      "disproven": "#F0A58C"
+    },
+    "statusOrder": ["verified", "observed", "hypothesis", "stale", "disproven"],
+    "category": {
+      "location": "#C8B27A",
+      "shop": "#D9A066",
+      "npc": "#A9C3D9",
+      "item": "#C9B3DE",
+      "procedure": "#A9D1B8"
+    },
+    "goalKind": {
+      "masterGoal": "#D9B861",
+      "hypothesis": "#F2D35B",
+      "subgoal": "#E8C09A",
+      "approach": "#C9A0E8",
+      "execution": "#8CC0EA"
+    },
+    "goalSource": { "evidence": "#9FD07A", "agentHypothesis": "#F2D35B" },
+    "nudgeOutcome": {
+      "accepted": "#9FD07A",
+      "modified": "#E8C09A",
+      "deferred": "#C4BBA8",
+      "investigate": "#8CC0EA",
+      "rejected": "#F0A58C"
+    },
+    "agentState": { "online": "#8FD16A", "degraded": "#E0A040", "offline": "#7E705A" },
+    "map": {
+      "grass": "#4B6A2C",
+      "grassDark": "#3F5C25",
+      "water": "#3B6C9C",
+      "path": "#8C7350",
+      "building": "#8E8270",
+      "tree": "#2C4A1A",
+      "self": "#FFFFFF",
+      "otherAgent": "#7FB3E6",
+      "npc": "#F2D35B",
+      "shop": "#C9A0E8",
+      "bank": "#D9B861",
+      "route": "#F2D35B",
+      "destination": "#E0813A"
+    },
+    "vitals": { "hitpoints": "#C8463A", "xp": "#8FD16A" },
+    "graph": {
+      "canvas": "#241C14",
+      "gridDot": "#5A4A36",
+      "edge": "#9A8260",
+      "edgeDim": "#43372A",
+      "edgeActive": "#E3C26A"
+    }
+  },
+  "font": {
+    "display": {
+      "family": ["RSPlain", "Pixelify Sans", "ui-monospace", "monospace"],
+      "sizes": [16, 20, 24, 32],
+      "weight": 400,
+      "synthesis": "none",
+      "license": "CC BY 4.0 via onlinewebfonts.com — attribution required on every page; verify provenance before shipping"
+    },
+    "body": {
+      "family": ["Source Sans 3", "system-ui", "sans-serif"],
+      "sizes": [13, 14, 15, 16, 17, 20],
+      "weights": [400, 600, 700]
+    },
+    "mono": { "family": ["ui-monospace", "monospace"], "sizes": [13, 14] }
+  },
+  "space": [4, 6, 8, 10, 12, 16, 20, 24, 32],
+  "radius": { "default": 0, "round": "50%" },
+  "border": { "panel": 2, "row": 1 },
+  "shadow": {
+    "bevel": "inset 2px 2px 0 #6E5A3D, inset -2px -2px 0 #231B12",
+    "stoneBevel": "inset 2px 2px 0 #6B5E4A, inset -2px -2px 0 #2A231A",
+    "parchmentInner": "inset 0 0 0 2px #F4ECD3",
+    "float": "0 4px 10px rgba(0,0,0,0.45)",
+    "selectedNode": "0 0 0 4px rgba(227,194,106,0.35), 0 8px 18px rgba(0,0,0,0.55)",
+    "gameText": "1px 1px 0 #000"
+  },
+  "size": {
+    "headerHeight": 64,
+    "subbarHeight": 52,
+    "controlMinHeight": 40,
+    "listItemMinHeight": 44,
+    "sidebarMinWidth": 280,
+    "agentSidebarWidth": 380,
+    "contentMaxWidth": 860,
+    "pageMaxWidth": 1440,
+    "graphNode": { "width": 220, "height": 92 },
+    "equipSlot": 56,
+    "iconGrid": 32,
+    "stackBreakpoint": 900
+  },
+  "motion": {
+    "activeEdge": "stroke-dasharray 8 6; dashoffset -14 over 0.7s linear infinite",
+    "rule": "Animate only live or selected things; respect prefers-reduced-motion."
+  }
+}
