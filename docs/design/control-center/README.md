@@ -1,8 +1,8 @@
 # Control Center — UI Guidance
 
-[Project overview](../../README.md) · [Control Center requirements](../control-center.md)
+[Project overview](../../../README.md) · [Control Center requirements](../../system/control-center.md) · Built in: <!-- built-in -->[M8](../../milestones/control-center.md)<!-- /built-in -->
 
-**Status:** Draft, high-level guidance from the first round of mock-ups (November 12, 2026). **Not final**; expect a refinement pass. Where this folder and [control-center.md](../control-center.md) disagree, the requirements doc wins on *what* to build and this folder wins on *how it should look and behave*.
+**Status:** Draft, high-level guidance from the first round of mock-ups (November 12, 2026). **Not final**; expect a refinement pass. Where this folder and [control-center.md](../../system/control-center.md) disagree, the requirements doc wins on *what* to build and this folder wins on *how it should look and behave*.
 
 Live mock-up canvas (private until shared): https://claude.ai/artifact/Uvth6itrQ7e8d2Xb4ehMo4
 
@@ -20,7 +20,7 @@ Live mock-up canvas (private until shared): https://claude.ai/artifact/Uvth6itrQ
 
 ## Guidance for coding agents
 
-1. **Stack:** React + TypeScript + Vite, data from the Hono API with server-sent events (see [control-center.md](../control-center.md)). Load `tokens.css` globally and use the `--cc-*` variables. Don't hard-code hex values.
+1. **Stack:** React + TypeScript + Vite, data from the Hono API with server-sent events (see [control-center.md](../../system/control-center.md)). Load `tokens.css` globally and use the `--cc-*` variables. Don't hard-code hex values.
 2. **Graphs:** build the Discoveries Connections view with **React Flow (`@xyflow/react`)**: custom node type, labelled bezier edges, MiniMap, Controls, Background (dots).
 3. **Game-style panels** (inventory, equipment, skills, bank) copy the *layout conventions* of the 2004 client but must use **original or properly licensed art**. The icons in the mock-ups are placeholders.
 4. **Sample data:** everything in the mock-ups is invented for layout. **Never seed it as real game knowledge.**

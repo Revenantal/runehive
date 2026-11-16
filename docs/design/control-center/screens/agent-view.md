@@ -37,7 +37,7 @@ Watch one agent live: where it is, what it's working toward, what it's doing rig
 - **Agent dropdown** (right-aligned): status dot, name and current activity per option. Selecting an agent switches the whole screen.
 
 ### Map (main view)
-- A **rectangular** Revision 274 map that fills the left area. Choose the tile source after checking the verified map assets (see [control-center.md](../../control-center.md)).
+- A **rectangular** Revision 274 map that fills the left area. Choose the tile source after checking the verified map assets (see [control-center.md](../../../system/control-center.md)).
 - Layers: the selected agent (white dot with a ring), other agents (blue dots with names), NPCs (yellow dots), labelled points of interest (bank, shops), the planned route (dashed yellow), and the destination (orange flag).
 - An action tag above the agent: "Walking to oak · 14 tiles".
 - **Overlay card (top-left):** Goal (with progress), Approach (with next review countdown) and Now (current execution step plus a key stat). The "Details" button opens the sidebar's Goals tab.

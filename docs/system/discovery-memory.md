@@ -1,6 +1,6 @@
 # Discovery Memory
 
-[Project overview](../README.md)
+[Project overview](../../README.md) · Built in: <!-- built-in -->[M5](../milestones/discovery-memory.md), [M9](../milestones/multiple-agents.md)<!-- /built-in -->
 
 ## Discovery Memory: the learning system
 

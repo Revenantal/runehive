@@ -1,6 +1,6 @@
 # Architecture and Repository
 
-[Project overview](../README.md)
+[Project overview](../../README.md) · Built in: <!-- built-in -->[M0](../milestones/project-setup.md), [M3](../milestones/execution.md), [M4](../milestones/navigation-and-exploration.md), [M6](../milestones/approach.md), [M7](../milestones/goal.md)<!-- /built-in -->
 
 ## Architectural approach
 
@@ -53,7 +53,7 @@ Example output: "My long-term objective is to complete Dragon Slayer. I'm invest
 
 ### Approach — *What should I try next?*
 
-**Timescale:** Minutes to hours; **10-minute review interval** is the initial default, configurable.
+**Timescale:** Minutes to hours. Review cadence is in [Agent Runtime](agent-runtime.md#execution-rhythms-and-cost-control).
 
 Responsibilities:
 - Choose a bounded activity or experiment, e.g. *investigate the Varrock sword shop*, *train Defence*, *test whether I can equip this item*.
@@ -82,7 +82,7 @@ The executor should use **generic primitives and reusable patterns** rather than
 
 Keep the code we build in one TypeScript workspace in a single GitHub repository. It starts with two local packages, **Aeris (Headless Client)** and **Agent Runtime**, plus the **Control Center** frontend app. Each package has its own `package.json`. The workspace lets the runtime import the client from the same checkout. LostCity stays in a separate upstream checkout pinned to tested Revision 274 commits and runs as its own game server.
 
-The [setup milestone](milestones/project-setup.md) provisions the Git-ignored `lostcity/` directory inside the workspace and fetches the upstream source so the server and client files can be browsed locally.
+The [setup milestone](../milestones/project-setup.md) provisions the Git-ignored `lostcity/` directory inside the workspace and fetches the upstream source so the server and client files can be browsed locally.
 
 Open the project Git checkout as the workspace root. It contains the human entry point in `README.md`, the shared coding-agent instructions in `AGENTS.md`, the Claude Code import in `CLAUDE.md`, and the documentation under `docs/`.
 
@@ -91,31 +91,32 @@ runehive/                           # Runehive workspace root and Git checkout
 ├── README.md                       # Human entry point
 ├── AGENTS.md                       # Coding-agent entry point
 ├── CLAUDE.md                       # Imports AGENTS.md
-├── docs/                           # Index, roadmap, milestones, design, and guides
+├── docs/                           # Index, roadmap, milestones, plans, system docs, UI design, guides, standards
 ├── package.json                    # npm workspace and project CLI
+├── eslint.config.mjs, .prettierrc.json, tsconfig.base.json   # lint, format, strict TS
+├── .githooks/                      # pre-commit, pre-push, commit-msg
 ├── .gitignore                      # Excludes /lostcity/ from our Git checkout
 ├── tools/                          # Project CLI and upstream source manifest
-├── tests/                          # Project CLI and cross-package tests
+├── tests/                          # cli/, docs/, integration/, gameplay/
 ├── lostcity/                       # Git-ignored upstream checkout
-└── runescape-ai/                   # Application source
-    ├── packages/
-    │   ├── headless-client/         # Aeris: protocol, sessions, game state, player actions
-    │   │   └── package.json
-    │   └── agent-runtime/          # Agent behavior and supporting systems
-    │       ├── package.json
-    │       └── src/
-    │           ├── goal/           # Long-term goals and priorities
-    │           ├── approach/       # Next activity or experiment
-    │           ├── execution/      # Workflows, outcome checks, recovery
-    │           ├── perception/     # Observations available to the agent
-    │           ├── navigation/     # Map access and routing
-    │           ├── memory/         # Personal and shared discoveries
-    │           ├── history/        # Events and evidence
-    │           ├── agents/         # Lifecycle, scheduling, budgets
-    │           ├── storage/        # SQLite persistence
-    │           └── api/            # Queries, live events, optional nudge intake
-    └── apps/
-        └── control-center/        # Frontend for agent state, goals, discoveries, and history
+├── apps/
+│   └── control-center/             # Frontend for agent state, goals, discoveries, and history
+└── packages/
+    ├── headless-client/            # Aeris: protocol, sessions, game state, player actions
+    │   └── package.json
+    └── agent-runtime/              # Agent behavior and supporting systems
+        ├── package.json
+        └── src/
+            ├── goal/               # Long-term goals and priorities
+            ├── approach/           # Next activity or experiment
+            ├── execution/          # Workflows, outcome checks, recovery
+            ├── perception/         # Observations available to the agent
+            ├── navigation/         # Map access and routing
+            ├── memory/             # Personal and shared discoveries
+            ├── history/            # Events and evidence
+            ├── agents/             # Lifecycle, scheduling, budgets
+            ├── storage/            # SQLite persistence
+            └── api/                # Queries, live events, optional nudge intake
 ```
 
 ### Aeris (Headless Client)
@@ -156,16 +157,7 @@ Exploration uses several runtime modules. Approach picks a question worth invest
 
 ### Control Center frontend app
 
-The Control Center uses React and TypeScript with Vite. It visualizes runtime data through the API and live event stream.
-
-| View or feature | What it shows or does |
-|---|---|
-| **Discovery Explorer** | Searches and filters discoveries, with links through evidence, attempts, and follow-up findings. |
-| **Agent View** | Switches between characters and shows a live minimap, current Goal → Approach → Execution, the Agent Journal, and character panels. |
-| **Goal Explorer** | Shows objectives, dependencies, planning decisions, and the evidence behind them. |
-| **Historical Replay** | Reconstructs past activity from recorded positions, snapshots, and events when replay is added. |
-| **Live graphical spectator view** | Stretch goal for watching the selected agent through the Revision 274 web client or its rendering code. |
-| **Human Guidance** | Optionally submits suggestions and shows how the Approach layer evaluated them. |
+A React and TypeScript web app built with Vite. It visualizes runtime data through the API and live event stream. Views, features, and stack are in the [Control Center plan](control-center.md).
 
 ### LostCity upstream
 

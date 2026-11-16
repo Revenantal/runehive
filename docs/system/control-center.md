@@ -1,6 +1,6 @@
 # Control Center
 
-[Project overview](../README.md) · [UI guidance: branding, tokens, screen specs](control-center/README.md)
+[Project overview](../../README.md) · [UI guidance: branding, tokens, screen specs](../design/control-center/README.md) · Built in: <!-- built-in -->[M8](../milestones/control-center.md), [M9](../milestones/multiple-agents.md), [M10](../milestones/optional-features.md)<!-- /built-in -->
 
 ## Human-facing web platform
 

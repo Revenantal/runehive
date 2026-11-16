@@ -1,6 +1,34 @@
+---
+id: M7
+title: "Build the Goal layer"
+delivers: "An agent can pursue and revise an objective across several activities."
+depends_on: [M6]
+design: []
+builds:
+  - { name: "Goal and prerequisite model with hypothesis status", system: architecture, status: in-design }
+  - { name: "Goal-to-Approach hand-off and priority revision", system: architecture, status: in-design }
+  - { name: "Goal structure and history in the CLI", system: architecture, status: in-design }
+---
 # Build the Goal layer
 
-[Roadmap](../roadmap.md) · [Architecture](../architecture.md)
+[Roadmap](../roadmap.md)
+
+<!-- status:start -->
+- **Status:** In design (from its builds)
+- **Depends on:** [M6](approach.md)
+
+**Builds**
+
+| Component | System doc | Status |
+|---|---|---|
+| Goal and prerequisite model with hypothesis status | [Architecture and Repository](../system/architecture.md) | In design |
+| Goal-to-Approach hand-off and priority revision | [Architecture and Repository](../system/architecture.md) | In design |
+| Goal structure and history in the CLI | [Architecture and Repository](../system/architecture.md) | In design |
+
+**Plans** (revisions to this milestone's builds)
+
+No plans yet. Add one in `docs/plans/` when something needs to change (see the [plans guide](../plans/README.md)).
+<!-- status:end -->
 
 ## Goal
 

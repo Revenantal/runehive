@@ -1,6 +1,34 @@
+---
+id: M4
+title: "Add map navigation and exploration"
+delivers: "An agent can reach and investigate a supplied location."
+depends_on: [M3]
+design: []
+builds:
+  - { name: "Map, collision, and point-of-interest access", system: lostcity-and-aeris, status: in-design }
+  - { name: "Route planning and blocked-movement detection", system: architecture, status: in-design }
+  - { name: "Shop investigation hand-off to Execution", system: architecture, status: in-design }
+---
 # Add map navigation and exploration
 
-[Roadmap](../roadmap.md) · [Map access and starting knowledge](../lostcity-and-aeris.md)
+[Roadmap](../roadmap.md)
+
+<!-- status:start -->
+- **Status:** In design (from its builds)
+- **Depends on:** [M3](execution.md)
+
+**Builds**
+
+| Component | System doc | Status |
+|---|---|---|
+| Map, collision, and point-of-interest access | [LostCity and Aeris](../system/lostcity-and-aeris.md) | In design |
+| Route planning and blocked-movement detection | [Architecture and Repository](../system/architecture.md) | In design |
+| Shop investigation hand-off to Execution | [Architecture and Repository](../system/architecture.md) | In design |
+
+**Plans** (revisions to this milestone's builds)
+
+No plans yet. Add one in `docs/plans/` when something needs to change (see the [plans guide](../plans/README.md)).
+<!-- status:end -->
 
 ## Goal
 

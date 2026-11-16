@@ -1,6 +1,6 @@
 # Control Center — Branding & Visual Identity
 
-[Control Center UI index](README.md) · [Project overview](../../README.md)
+[Control Center UI index](README.md) · [Project overview](../../../README.md)
 
 **Status:** Draft guidance — **not a final specification.** These rules come from the first round of mock-ups and are meant to keep work consistent until a proper refinement pass.
 Machine-readable values: [`design-tokens.json`](design-tokens.json) · [`tokens.css`](tokens.css)

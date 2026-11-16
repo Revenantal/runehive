@@ -1,6 +1,6 @@
 # LostCity and Aeris
 
-[Project overview](../README.md)
+[Project overview](../../README.md) · Built in: <!-- built-in -->[M0](../milestones/project-setup.md), [M1](../milestones/local-lostcity.md), [M2](../milestones/headless-client.md), [M4](../milestones/navigation-and-exploration.md)<!-- /built-in -->
 
 ## LostCity integration: external by default
 

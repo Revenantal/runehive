@@ -4,21 +4,23 @@
 
 ## Milestone index
 
-Read the table in the current build order. Each brief contains its goal, objectives, plan, and a demonstration or completion criteria. To insert or reorder a milestone, update the table and any affected dependencies. Filenames describe the work and can stay the same when the order changes.
+Read the table in the current build order. Status comes from each milestone's builds, and revisions are the open [plans](plans/README.md) against it. The table is generated from front matter by `npm run docs:sync`; see [how milestones are tracked](milestones/README.md) for what to edit. Filenames describe the work and can stay the same when the order changes.
 
-| Milestone | What it delivers |
-|---|---|
-| M0 · [Project organization and setup](milestones/project-setup.md) | Written project guides, workspace folders, and a tested init command that fetches the LostCity sources locally. |
-| M1 · [Play LostCity locally](milestones/local-lostcity.md) | A reproducible Revision 274 world the owner can manage from the project CLI and play in the graphical client. |
-| M2 · [Build Aeris and its CLI](milestones/aeris-client.md) | A working headless client usable through typed commands and TypeScript scripts. |
-| M3 · [Build the Execution layer](milestones/execution.md) | A bot can carry out a supplied task and verify the result in-game. |
-| M4 · [Add map navigation and exploration](milestones/navigation-and-exploration.md) | An agent can reach and investigate a supplied location. |
-| M5 · [Add Event History and Discovery Memory](milestones/discovery-memory.md) | A real observation becomes a retrievable discovery with evidence that survives a restart. |
-| M6 · [Build the Approach layer](milestones/approach.md) | An agent can choose what to try next and explain its choice. |
-| M7 · [Build the Goal layer](milestones/goal.md) | An agent can pursue and revise an objective across several activities. |
-| M8 · [Build the Control Center](milestones/control-center.md) | One web app shows live agent activity, goal progression, and discoveries. |
-| M9 · [Run multiple agents](milestones/multiple-agents.md) | Independent agents share discoveries, resume after restart, and can be selected in the Control Center. |
-| M10 · [Explore optional features](milestones/optional-features.md) | Human nudges, replay, richer analysis, and a possible live spectator view. |
+<!-- milestones:start -->
+| Milestone | Status | Builds | Revisions | What it delivers |
+|---|---|---|---|---|
+| M0 · [Project organization and setup](milestones/project-setup.md) | In progress | 0/3 done | — | Written project guides, workspace folders, and a tested init command that fetches the LostCity sources locally. |
+| M1 · [Play LostCity locally](milestones/local-lostcity.md) | In design | 0/3 done | — | A reproducible Revision 274 world the owner can manage from the project CLI and play in the graphical client. |
+| M2 · [Build the Headless Client](milestones/headless-client.md) | In design | 0/4 done | — | A working Headless Client (Aeris) usable through typed commands and TypeScript scripts. |
+| M3 · [Build the Execution layer](milestones/execution.md) | In design | 0/4 done | — | A bot can carry out a supplied task and verify the result in-game. |
+| M4 · [Add map navigation and exploration](milestones/navigation-and-exploration.md) | In design | 0/3 done | — | An agent can reach and investigate a supplied location. |
+| M5 · [Add Event History and Discovery Memory](milestones/discovery-memory.md) | In design | 0/4 done | — | A real observation becomes a retrievable discovery with evidence that survives a restart. |
+| M6 · [Build the Approach layer](milestones/approach.md) | In design | 0/3 done | — | An agent can choose what to try next and explain its choice. |
+| M7 · [Build the Goal layer](milestones/goal.md) | In design | 0/3 done | — | An agent can pursue and revise an objective across several activities. |
+| M8 · [Build the Control Center](milestones/control-center.md) | In design | 0/4 done | — | One web app shows live agent activity, goal progression, and discoveries. |
+| M9 · [Run multiple agents](milestones/multiple-agents.md) | In design | 0/3 done | — | Independent agents share discoveries, resume after restart, and can be selected in the Control Center. |
+| M10 · [Explore optional features](milestones/optional-features.md) | In design | 0/3 done | — | Human nudges, replay, richer analysis, and a possible live spectator view. |
+<!-- milestones:end -->
 
 ## Initial success scenarios
 
@@ -61,22 +63,9 @@ These small, end-to-end demonstrations should guide engineering more than specul
 | What is a "verified" discovery? | Prevents overconfident shared facts | Explicit verification rules per observation type |
 | Should human nudges be enabled by default? | Autonomy and experiment design | Feature flag, policy, audit |
 
-## Decisions we're leaning toward vs. questions still open
+## Open decisions
 
-### Preferred direction (still revisable)
-
-- LostCity **Revision 274**, privately hosted.
-- TypeScript-first custom ecosystem with **no upstream fork by default**.
-- **Three layers** in order of delegation are Goal, Approach, and Execution.
-- **No preloaded Game Knowledge Engine**; experiential **Discovery Memory** instead.
-- Game-native map/POI access is permitted, subject to actual revision 274 data.
-- SQLite for persistent events, memories, goals and state; FTS5 initially.
-- React and TypeScript Control Center built with Vite, starting with the Discovery Explorer and adding live agent and goal views incrementally.
-- Explainable, structured planner decisions rather than raw hidden reasoning.
-- Optional human nudges treated as **untrusted suggestions** and evaluated, never blindly executed.
-- Burst planning with roughly 10-minute Approach checkpoints and deterministic execution of normal actions.
-
-### To verify or decide later
+Current direction lives in [project goals](project-goals.md) and the [system docs](system/architecture.md). These are still to be verified or decided:
 
 - Exact Revision 274 repo/branch/commit compatibility and tooling requirements.
 - Feasibility and final design of the ordinary headless protocol client.
@@ -86,18 +75,3 @@ These small, end-to-end demonstrations should guide engineering more than specul
 - Whether any narrow upstream integration patches are justified.
 - UI interaction permissions and when to enable nudges or controls.
 - Detailed costs, hosting footprint, concurrency and backup/retention policy.
-
-## Guidance for a future AI development agent
-
-When this document is used as project context:
-
-1. **Treat it as intent, not immutable requirements.** Flag assumptions, risks and better alternatives.
-2. **Investigate current upstream LostCity source and Revision 274 compatibility first.** Don't assume previous research is still accurate.
-3. **Do not begin by forking LostCity, parsing the entire RuneScript world, or preloading OSRS wiki data.** Those conflict with the discovery-first experiment unless explicitly reconsidered.
-4. **Prove a normal external player session first.** This is the principal technical feasibility gate.
-5. **Implement thin vertical slices.** Prefer one real shop discovery saved to the UI over dozens of unfinished framework modules.
-6. **Separate direct observations, interpretations, hypotheses and verified facts.** Attach evidence and revision context.
-7. **Do not claim hidden chain-of-thought visibility.** Store concise, explicit decision records for inspection.
-8. **Keep human nudges optional and advisory.** Never grant untrusted user text automatic execution authority.
-9. **Measure and document tradeoffs.** Preserve TypeScript simplicity, external integration, realistic game actions, observability and learnability.
-10. **Use the actual Revision 274 game as ground truth**, with the game client as the bot's perception/action boundary.

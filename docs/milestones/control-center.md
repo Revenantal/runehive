@@ -1,6 +1,37 @@
+---
+id: M8
+title: "Build the Control Center"
+delivers: "One web app shows live agent activity, goal progression, and discoveries."
+depends_on: [M5]
+design: [control-center]
+builds:
+  - { name: "Runtime API and live event stream", system: control-center, status: in-design }
+  - { name: "Agent View with minimap and character panels", system: control-center, status: in-design }
+  - { name: "Agent Journal and goal history", system: control-center, status: in-design }
+  - { name: "Discovery Explorer", system: control-center, status: in-design }
+---
 # Build the Control Center
 
-[Roadmap](../roadmap.md) · [Control Center plan](../control-center.md) · [Screen designs and mockups](../control-center/README.md)
+[Roadmap](../roadmap.md)
+
+<!-- status:start -->
+- **Status:** In design (from its builds)
+- **Depends on:** [M5](discovery-memory.md)
+- **Design:** [Control Center — UI Guidance](../design/control-center/README.md)
+
+**Builds**
+
+| Component | System doc | Status |
+|---|---|---|
+| Runtime API and live event stream | [Control Center](../system/control-center.md) | In design |
+| Agent View with minimap and character panels | [Control Center](../system/control-center.md) | In design |
+| Agent Journal and goal history | [Control Center](../system/control-center.md) | In design |
+| Discovery Explorer | [Control Center](../system/control-center.md) | In design |
+
+**Plans** (revisions to this milestone's builds)
+
+No plans yet. Add one in `docs/plans/` when something needs to change (see the [plans guide](../plans/README.md)).
+<!-- status:end -->
 
 ## Goal
 
