@@ -1,0 +1,30 @@
+{
+  "destination": "lostcity",
+  "note": "Initial Revision 274 source set recorded in M0 from the upstream branch heads on 2026-11-16. M1 validates it through a real launch and updates pins if needed. Change a pin by editing 'commit' and recording the reason in the commit message (see docs/guides/git-workflow.md).",
+  "components": [
+    {
+      "name": "engine",
+      "description": "Engine-TS, the game server for Revision 274, including the bundled browser client.",
+      "url": "https://github.com/LostCityRS/Engine-TS.git",
+      "branch": "274",
+      "commit": "5522cd0cd82f0df07d99c142574d4706815f1c9c",
+      "path": "engine"
+    },
+    {
+      "name": "content",
+      "description": "Revision 274 game content scripts and data.",
+      "url": "https://github.com/LostCityRS/Content.git",
+      "branch": "274",
+      "commit": "65b754f768b79b941b21b2a1eb3b0d1ecae3cdfe",
+      "path": "content"
+    },
+    {
+      "name": "webclient",
+      "description": "Client-TS source, kept as the protocol and cache reference for Aeris.",
+      "url": "https://github.com/LostCityRS/Client-TS.git",
+      "branch": "274",
+      "commit": "7d6ca61abda277cfed87d542e9e4aa3fe383b38d",
+      "path": "webclient"
+    }
+  ]
+}
