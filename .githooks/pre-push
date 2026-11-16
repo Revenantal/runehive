@@ -1,0 +1,3 @@
+#!/bin/sh
+# Block pushes that fail lint, formatting, or the test suite.
+exec npm run --silent check

@@ -1,0 +1,16 @@
+{
+  "note": "SPDX identifiers allowed in package-lock.json. Add one only with a decision record or a build(deps) commit that explains why.",
+  "allowed": [
+    "MIT",
+    "ISC",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "Apache-2.0",
+    "0BSD",
+    "BlueOak-1.0.0",
+    "CC0-1.0"
+  ],
+  "exceptions": {
+    "spdx-exceptions": "CC-BY-3.0, a data-only dev dependency pulled in by the linter"
+  }
+}

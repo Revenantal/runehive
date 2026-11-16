@@ -1,0 +1,7 @@
+{
+  "name": "@runehive/agent-runtime",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Agent Runtime: Goal, Approach, Execution, memory, history, and API.",
+  "type": "module"
+}

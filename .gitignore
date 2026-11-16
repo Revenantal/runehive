@@ -1,0 +1,12 @@
+# Upstream LostCity checkout, local world configuration, and saves (provisioned by `runehive init`)
+/lostcity/
+
+node_modules/
+dist/
+*.log
+.DS_Store
+
+# Local configuration and secrets. Commit .env.example, never a real .env
+.env
+.env.*
+!.env.example

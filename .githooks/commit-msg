@@ -1,0 +1,3 @@
+#!/bin/sh
+# Enforce Conventional Commits and reject co-author or tool attribution.
+exec node tools/check-commit-msg.mjs "$1"

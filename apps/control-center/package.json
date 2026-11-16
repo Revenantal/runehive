@@ -1,0 +1,7 @@
+{
+  "name": "@runehive/control-center",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Control Center: web app for agent state, goals, and discoveries.",
+  "type": "module"
+}

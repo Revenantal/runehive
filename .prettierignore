@@ -1,0 +1,7 @@
+/lostcity/
+node_modules/
+dist/
+package-lock.json
+# Markdown, design assets, and generated tables are not reformatted
+/docs/
+*.md
