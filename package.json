@@ -16,6 +16,8 @@
   ],
   "scripts": {
     "runehive": "node tools/runehive.mjs",
+    "start": "node tools/runehive.mjs start",
+    "stop": "node tools/runehive.mjs stop",
     "test": "node --test \"tests/**/*.test.mjs\"",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",

@@ -22,6 +22,19 @@ npm run runehive -- init
 
 Re-running is safe. Matching checkouts are reused. Anything else is reported and left untouched.
 
+## Start and stop services
+
+```sh
+npm start                          # start every service and wait until ready
+npm run runehive -- status         # stopped, starting, or ready, with the URL
+npm stop                           # stop every service cleanly
+npm run runehive -- start lostcity # or name one service
+```
+
+`start` runs the engine in the background and prints the browser URL (normally http://localhost:8888/rs2.cgi). The first start packs the cache and takes longer. The engine's log is `lostcity/.runehive/lostcity.log`. `stop` signals the whole process group and waits for the engine to save, and it never force-kills. LostCity is the only service for now. New services register in `tools/runehive.mjs`.
+
+The engine sometimes prints a V8 fatal-error trace at exit, after `Server shutdown complete`. The save has already finished by then.
+
 ## Optional: the `runehive` command
 
 Link the CLI once so `runehive` works without `npm run`:

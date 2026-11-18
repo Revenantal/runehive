@@ -14,6 +14,7 @@ import {
 } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as lostcityService from './lostcity-service.mjs';
 
 const toolsDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(toolsDir, '..');
@@ -24,6 +25,12 @@ Commands:
   init     Fetch the pinned LostCity sources into the Git-ignored lostcity/ directory.
            Reuses matching checkouts; reports (and never overwrites) mismatches,
            local edits, unexpected origins, and occupied paths.
+
+  start [service...]   Start services in the background (default: all). Waits until ready.
+  status [service...]  Show whether each service is stopped, starting, or ready.
+  stop [service...]    Stop services cleanly (default: all).
+
+Services: lostcity
 
 Options:
   --root <dir>       Project root (default: the checkout containing this file)
@@ -201,7 +208,7 @@ export function init({ root, manifestPath, log = console.log }) {
 
 /** Parses command-line arguments. */
 function parseArgs(argv) {
-  const args = { root: defaultRoot, manifest: null, command: null, help: false };
+  const args = { root: defaultRoot, manifest: null, command: null, services: [], help: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '-h' || a === '--help') args.help = true;
@@ -209,14 +216,51 @@ function parseArgs(argv) {
     else if (a === '--manifest') args.manifest = path.resolve(argv[++i] ?? '');
     else if (a.startsWith('-')) throw new Error(`unknown option ${a}`);
     else if (!args.command) args.command = a;
+    else if (['start', 'status', 'stop'].includes(args.command)) args.services.push(a);
     else throw new Error(`unexpected argument ${a}`);
   }
   args.manifest ??= path.join(args.root, 'tools', 'lostcity-sources.json');
   return args;
 }
 
+/** Services the CLI can manage, in start order. Add new services here as they come online. */
+const SERVICES = {
+  lostcity: {
+    /** Starts the local LostCity world. */
+    start: (ctx) => lostcityService.start(ctx),
+    /** Prints the LostCity world's state. */
+    status: (ctx) => {
+      const s = lostcityService.status(ctx);
+      ctx.log(`lostcity: ${s.state}${s.url ? `  ${s.url}` : ''}${s.pid ? `  (pid ${s.pid})` : ''}`);
+      return Promise.resolve(s.state === 'ready' ? 0 : 1);
+    },
+    /** Stops the local LostCity world. */
+    stop: (ctx) => lostcityService.stop(ctx),
+  },
+};
+
+/** Runs an action for the named services (or all), stopping in reverse order. Returns an exit code. */
+async function runServices(action, names, ctx) {
+  const unknown = names.filter((n) => !(n in SERVICES));
+  if (unknown.length > 0) {
+    console.error(
+      `runehive: unknown service "${unknown[0]}". Known: ${Object.keys(SERVICES).join(', ')}`,
+    );
+    return 2;
+  }
+  const selected = names.length > 0 ? names : Object.keys(SERVICES);
+  if (action === 'stop') selected.reverse();
+  let code = 0;
+  for (const name of selected) {
+    const result = await SERVICES[name][action](ctx);
+    if (result !== 0) code = result;
+    if (action === 'start' && result !== 0) break;
+  }
+  return code;
+}
+
 /** Runs the CLI and returns an exit code. */
-function main(argv) {
+async function main(argv) {
   let args;
   try {
     args = parseArgs(argv);
@@ -236,11 +280,16 @@ function main(argv) {
       return 1;
     }
   }
+  if (['start', 'status', 'stop'].includes(args.command)) {
+    const manifest = JSON.parse(readFileSync(args.manifest, 'utf8'));
+    const ctx = { root: args.root, destination: manifest.destination, log: console.log };
+    return runServices(args.command, args.services, ctx);
+  }
   console.error(`runehive: unknown command "${args.command}"\n\n${HELP}`);
   return 2;
 }
 
 // Resolve symlinks so the check also works when launched through `npm link`.
 if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  process.exitCode = main(process.argv.slice(2));
+  process.exitCode = await main(process.argv.slice(2));
 }
