@@ -53,7 +53,7 @@ Run these from the project root after the [M0 npm bootstrap](project-setup.md).
 | `runehive status lostcity` | Show whether the world is stopped, starting, or ready. |
 | `runehive stop lostcity` | Shut down the local world cleanly. |
 
-As other services are added, the CLI can accept their names and offer a single command to start or stop the full local stack.
+As other services are added, the CLI can accept their names and offer a single command to start or stop the full local stack. These commands now exist: with no service name, `runehive start`, `status`, and `stop` act on every registered service, and `npm start` and `npm stop` are shortcuts. Verifying save persistence and representative gameplay remains open.
 
 ## Done when
 

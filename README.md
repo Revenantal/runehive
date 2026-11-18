@@ -31,14 +31,17 @@ See the [architecture](docs/system/architecture.md) for the full picture.
 
 ## Getting started
 
-Setup steps are to be determined. They will be written as the milestones land, starting with running LostCity locally ([M1](docs/milestones/local-lostcity.md)).
-
-For now the repo can fetch the pinned LostCity sources into a Git-ignored `lostcity/` folder. This needs Node.js 24 or newer and Git:
+Setup steps are being written as the milestones land. The repo can fetch the pinned LostCity sources into a Git-ignored `lostcity/` folder and run the local world. This needs Node.js 24 or newer and Git:
 
 ```sh
 npm install
-npm run runehive -- init
+npm run runehive -- init   # fetch the pinned LostCity sources
+npm start                  # start all services in the background; prints the browser URL
+npm run runehive -- status # stopped, starting, or ready
+npm stop                   # stop all services cleanly
 ```
+
+Open the printed URL (normally http://localhost:8888/rs2.cgi) to play. See [local development](docs/guides/local-development.md) for details. Representative gameplay and save-persistence checks are still open in [M1](docs/milestones/local-lostcity.md).
 
 ## Documentation
 

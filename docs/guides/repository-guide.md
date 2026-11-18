@@ -11,7 +11,7 @@ The outer folder is both the Git checkout and the workspace root. Open it for de
 | `eslint.config.mjs`, `.prettierrc.json`, `.prettierignore`, `tsconfig.base.json` | Lint, formatting, and strict TypeScript configuration shared by every package | Yes |
 | `.githooks/` | `pre-commit`, `pre-push`, and `commit-msg` hooks; `npm install` activates them | Yes |
 | `docs/` | Index, roadmap, milestone briefs, [plans](../plans/README.md), system docs, UI design, guides, [standards](../standards/README.md), and [decisions](../decisions/README.md) | Yes |
-| `tools/` | CLI entry point (`runehive.mjs`), the LostCity source manifest (`lostcity-sources.json`), and the docs generator (`docs-sync.mjs`) | Yes |
+| `tools/` | CLI entry point (`runehive.mjs`), the LostCity service control (`lostcity-service.mjs`), the LostCity source manifest (`lostcity-sources.json`), and the docs generator (`docs-sync.mjs`) | Yes |
 | `tests/` | Project tests, split into `cli/`, `docs/`, `integration/`, and `gameplay/` | Yes |
 | `packages/headless-client/` | Aeris: protocol, sessions, game state, player actions | Yes |
 | `packages/agent-runtime/` | Goal, Approach, Execution, and supporting modules (`src/*`) | Yes |

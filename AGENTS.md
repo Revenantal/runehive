@@ -27,6 +27,7 @@ Runehive builds autonomous agents that learn to play a private LostCity Revision
 ## Commands
 
 - `npm run runehive -- init` fetches the pinned LostCity sources.
+- `npm start`, `npm run runehive -- status`, and `npm stop` start, check, and stop the local services (LostCity for now) in the background.
 - `npm install` installs dev tooling and the Git hooks.
 - `npm run check` runs lint, formatting, and tests. It must pass before any commit or push.
 - `npm test` runs only the automated suite (Node.js 24+ and Git only).
