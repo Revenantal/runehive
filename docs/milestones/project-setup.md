@@ -6,7 +6,7 @@ depends_on: []
 design: []
 builds:
   - { name: "Workspace scaffold and npm workspaces", system: architecture, status: done }
-  - { name: "LostCity source manifest and init CLI", system: lostcity-and-aeris, status: done }
+  - { name: "LostCity source manifest and init CLI", system: lostcity-and-headless-client, status: done }
   - { name: "Project guides and agent instructions", system: none, status: done }
 ---
 # Project organization and setup
@@ -22,7 +22,7 @@ builds:
 | Component | System doc | Status |
 |---|---|---|
 | Workspace scaffold and npm workspaces | [Architecture and Repository](../system/architecture.md) | Done |
-| LostCity source manifest and init CLI | [LostCity and Aeris](../system/lostcity-and-aeris.md) | Done |
+| LostCity source manifest and init CLI | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) | Done |
 | Project guides and agent instructions | — | Done |
 
 **Plans** (revisions to this milestone's builds)
@@ -37,7 +37,7 @@ Prepare the TypeScript workspace, establish where project documentation and plan
 ## Investigation findings
 
 - LostCity's setup repository is an interactive launcher. For Revision 274 it checks out Engine-TS, Content, Client-TS, and Client-Java into `engine/`, `content/`, `webclient/`, and `javaclient/`. It clones by branch name, so our init should record exact commits for repeatable setup. The launcher and engine specify Node.js 24 or newer. [Launcher README](https://github.com/LostCityRS/Server/blob/main/README.md) · [Launcher source](https://github.com/LostCityRS/Server/blob/main/start.js) · [Engine package manifest](https://github.com/LostCityRS/Engine-TS/blob/274/package.json)
-- The engine checkout includes a bundled browser client for the first local play test. Fetch Client-TS as the local source reference for Aeris. Fetch Client-Java separately if a later investigation needs it. Leave Bun and web client build submodules to a milestone that needs to rebuild the browser client. [Bundled client](https://github.com/LostCityRS/Engine-TS/tree/274/public/client) · [Client-TS build scripts](https://github.com/LostCityRS/Client-TS/blob/274/package.json) · [Client-TS submodules](https://github.com/LostCityRS/Client-TS/blob/274/.gitmodules)
+- The engine checkout includes a bundled browser client for the first local play test. Fetch Client-TS as the local source reference for headless client. Fetch Client-Java separately if a later investigation needs it. Leave Bun and web client build submodules to a milestone that needs to rebuild the browser client. [Bundled client](https://github.com/LostCityRS/Engine-TS/tree/274/public/client) · [Client-TS build scripts](https://github.com/LostCityRS/Client-TS/blob/274/package.json) · [Client-TS submodules](https://github.com/LostCityRS/Client-TS/blob/274/.gitmodules)
 - First-time engine configuration is a separate upstream setup step. The engine setup source writes configuration to `data/config/world.json`, and the engine ignores local configuration, player data, and database files. Treat the engine checkout as the home of the local world once M1 configures it. The exact save locations should be confirmed against the chosen M1 configuration. [Engine setup](https://github.com/LostCityRS/Engine-TS/blob/274/src/setup.ts) · [Engine ignore rules](https://github.com/LostCityRS/Engine-TS/blob/274/.gitignore)
 
 ## Layout and documentation

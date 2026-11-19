@@ -5,7 +5,7 @@ delivers: "An agent can reach and investigate a supplied location."
 depends_on: [M3]
 design: []
 builds:
-  - { name: "Map, collision, and point-of-interest access", system: lostcity-and-aeris, status: in-design }
+  - { name: "Map, collision, and point-of-interest access", system: lostcity-and-headless-client, status: in-design }
   - { name: "Route planning and blocked-movement detection", system: architecture, status: in-design }
   - { name: "Shop investigation hand-off to Execution", system: architecture, status: in-design }
 ---
@@ -21,7 +21,7 @@ builds:
 
 | Component | System doc | Status |
 |---|---|---|
-| Map, collision, and point-of-interest access | [LostCity and Aeris](../system/lostcity-and-aeris.md) | In design |
+| Map, collision, and point-of-interest access | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) | In design |
 | Route planning and blocked-movement detection | [Architecture and Repository](../system/architecture.md) | In design |
 | Shop investigation hand-off to Execution | [Architecture and Repository](../system/architecture.md) | In design |
 

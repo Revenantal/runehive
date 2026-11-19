@@ -27,7 +27,7 @@ Follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.
 - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
 - Header: imperative mood, lower case after the colon, no trailing period, 72 characters or fewer.
 - Mark breaking changes with `!` before the colon and a `BREAKING CHANGE:` footer.
-- Scope is the area changed, such as `cli`, `docs`, `aeris`, `runtime`, `deps`.
+- Scope is the area changed, such as `cli`, `docs`, `headless-client`, `runtime`, `deps`.
 
 ```text
 feat(cli): add init command for pinned LostCity sources

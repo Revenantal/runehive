@@ -18,7 +18,7 @@ This is the map of the docs. Planning documents are a work in progress: they des
 How the system works, shared across milestones. Each system doc lists the milestones that build it, and each milestone brief lists the system docs it relies on.
 
 - [Architecture and repository](system/architecture.md)
-- [LostCity and Aeris](system/lostcity-and-aeris.md)
+- [LostCity and the Headless Client](system/lostcity-and-headless-client.md)
 - [Agent Runtime](system/agent-runtime.md)
 - [Discovery Memory](system/discovery-memory.md)
 - [Control Center](system/control-center.md)

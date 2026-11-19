@@ -37,7 +37,7 @@ Copy this into `docs/plans/<short-name>.md`. Keep the two marker comments, becau
 title: "Revisit the init command"
 status: not-started
 milestone: M0
-system: [lostcity-and-aeris]
+system: [lostcity-and-headless-client]
 ---
 # Revisit the init command
 
@@ -66,5 +66,7 @@ Commits, pull requests, and files that carried it out. Fill this in as the work 
 ## All plans
 
 <!-- plans:start -->
-No plans yet.
+| Plan | Milestone | Status | System docs changed |
+|---|---|---|---|
+| [Explore the headless client](headless-client-discovery.md) | [M2](../milestones/headless-client.md) | In design | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) |
 <!-- plans:end -->

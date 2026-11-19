@@ -1,4 +1,4 @@
-# Aeris source
+# Headless client source
 
 Source for the headless client.
 

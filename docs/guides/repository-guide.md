@@ -13,7 +13,7 @@ The outer folder is both the Git checkout and the workspace root. Open it for de
 | `docs/` | Index, roadmap, milestone briefs, [plans](../plans/README.md), system docs, UI design, guides, [standards](../standards/README.md), and [decisions](../decisions/README.md) | Yes |
 | `tools/` | CLI entry point (`runehive.mjs`), the LostCity service control (`lostcity-service.mjs`), the LostCity source manifest (`lostcity-sources.json`), and the docs generator (`docs-sync.mjs`) | Yes |
 | `tests/` | Project tests, split into `cli/`, `docs/`, `integration/`, and `gameplay/` | Yes |
-| `packages/headless-client/` | Aeris: protocol, sessions, game state, player actions | Yes |
+| `packages/headless-client/` | Headless client: protocol, sessions, game state, player actions | Yes |
 | `packages/agent-runtime/` | Goal, Approach, Execution, and supporting modules (`src/*`) | Yes |
 | `apps/control-center/` | React and Vite web app | Yes |
 | `lostcity/` | Upstream LostCity checkouts, local world configuration, and saves | **No** (ignored) |
@@ -26,7 +26,7 @@ Each component is pinned by full commit ID in `tools/lostcity-sources.json`.
 |---|---|---|
 | `lostcity/engine/` | Engine-TS, branch `274` | The game server and bundled browser client. Local world configuration and saves live here after M1 |
 | `lostcity/content/` | Content, branch `274` | Revision 274 game content |
-| `lostcity/webclient/` | Client-TS, branch `274` | Protocol and cache reference for Aeris |
+| `lostcity/webclient/` | Client-TS, branch `274` | Protocol and cache reference for headless client |
 
 Treat `lostcity/` as read-only reference except for the local configuration and saves M1 documents. Do not commit anything from it. Exact save locations are confirmed in M1.
 

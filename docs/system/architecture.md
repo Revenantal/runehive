@@ -80,7 +80,7 @@ The executor should use **generic primitives and reusable patterns** rather than
 
 ## Repository organization
 
-Keep the code we build in one TypeScript workspace in a single GitHub repository. It starts with two local packages, **Aeris (Headless Client)** and **Agent Runtime**, plus the **Control Center** frontend app. Each package has its own `package.json`. The workspace lets the runtime import the client from the same checkout. LostCity stays in a separate upstream checkout pinned to tested Revision 274 commits and runs as its own game server.
+Keep the code we build in one TypeScript workspace in a single GitHub repository. It starts with two local packages, **Headless Client** and **Agent Runtime**, plus the **Control Center** frontend app. Each package has its own `package.json`. The workspace lets the runtime import the client from the same checkout. LostCity stays in a separate upstream checkout pinned to tested Revision 274 commits and runs as its own game server.
 
 The [setup milestone](../milestones/project-setup.md) provisions the Git-ignored `lostcity/` directory inside the workspace and fetches the upstream source so the server and client files can be browsed locally.
 
@@ -102,7 +102,7 @@ runehive/                           # Runehive workspace root and Git checkout
 ├── apps/
 │   └── control-center/             # Frontend for agent state, goals, discoveries, and history
 └── packages/
-    ├── headless-client/            # Aeris: protocol, sessions, game state, player actions
+    ├── headless-client/            # Headless client: protocol, sessions, game state, player actions
     │   └── package.json
     └── agent-runtime/              # Agent behavior and supporting systems
         ├── package.json
@@ -119,9 +119,9 @@ runehive/                           # Runehive workspace root and Git checkout
             └── api/                # Queries, live events, optional nudge intake
 ```
 
-### Aeris (Headless Client)
+### Headless Client
 
-**Aeris** is the working name for the Headless Client and may change later. The client connects to LostCity as an ordinary player and can run independently for protocol and gameplay experiments.
+The headless client connects to LostCity as an ordinary player and can run independently for protocol and gameplay experiments.
 
 | Responsibility | What it does |
 |---|---|

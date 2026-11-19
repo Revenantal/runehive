@@ -118,7 +118,7 @@ const PLAN = [
   'title: "Revisit the init command"',
   'status: in-design',
   'milestone: M0',
-  'system: [lostcity-and-aeris]',
+  'system: [lostcity-and-headless-client]',
   '---',
   '# Revisit the init command',
   '',
@@ -155,7 +155,7 @@ test('a plan against a finished milestone shows in its brief, the roadmap, and t
     );
     const planText = read(dir, 'docs/plans/revisit-init.md');
     assert.match(planText, /\*\*Milestone:\*\* \[M0 · Project organization and setup\]/);
-    assert.match(planText, /\*\*System docs changed:\*\* \[LostCity and Aeris\]/);
+    assert.match(planText, /\*\*System docs changed:\*\* \[LostCity and the Headless Client\]/);
 
     // Finishing the plan updates every view.
     writeFileSync(plan, planText.replace('status: in-design', 'status: done'));
@@ -173,10 +173,10 @@ test('a plan with a bad milestone, status, system doc, title, key, or missing ma
     for (const [from, to, message] of [
       ['milestone: M0', 'milestone: M99', /milestone M99 does not exist/],
       ['status: in-design', 'status: blocked', /status "blocked" must be one of/],
-      ['system: [lostcity-and-aeris]', 'system: [nope]', /unknown system doc "nope"/],
+      ['system: [lostcity-and-headless-client]', 'system: [nope]', /unknown system doc "nope"/],
       ['title: "Revisit the init command"', 'title: "Something else"', /title does not match/],
       [
-        'system: [lostcity-and-aeris]',
+        'system: [lostcity-and-headless-client]',
         'system: []\nkind: revisit',
         /unknown front matter key "kind"/,
       ],

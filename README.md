@@ -22,7 +22,7 @@ Each agent plans on three timescales:
 
 The main pieces, all TypeScript:
 
-- **Aeris:** a headless client that connects to LostCity like a normal player.
+- **Headless client:** a client that connects to LostCity like a normal player.
 - **Agent Runtime:** the three layers, plus Discovery Memory and Event History in SQLite.
 - **Control Center:** a React and Vite web app for watching agents and browsing discoveries.
 - **LostCity:** an unmodified upstream Revision 274 server, kept outside this codebase.
@@ -41,7 +41,7 @@ npm run runehive -- status # stopped, starting, or ready
 npm stop                   # stop all services cleanly
 ```
 
-Open the printed URL (normally http://localhost:8888/rs2.cgi) to play. See [local development](docs/guides/local-development.md) for details. Representative gameplay and save-persistence checks are still open in [M1](docs/milestones/local-lostcity.md).
+Open the printed URL (normally http://localhost:8888/rs2.cgi) to play. See [local development](docs/guides/local-development.md) for details. See [M1](docs/milestones/local-lostcity.md) for the local-world milestone and its verification scope.
 
 ## Documentation
 

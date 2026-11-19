@@ -1,4 +1,4 @@
-# Aeris (Headless Client)
+# Headless Client
 
 Protocol, sessions, game state, and player actions for Revision 274.
 

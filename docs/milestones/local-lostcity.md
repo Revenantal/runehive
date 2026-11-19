@@ -5,25 +5,25 @@ delivers: "A reproducible Revision 274 world the owner can manage from the proje
 depends_on: [M0]
 design: []
 builds:
-  - { name: "Verified Revision 274 source pins and startup steps", system: lostcity-and-aeris, status: in-design }
-  - { name: "CLI service commands to start, check, and stop LostCity", system: lostcity-and-aeris, status: in-design }
-  - { name: "Representative gameplay verification of the local world", system: lostcity-and-aeris, status: in-design }
+  - { name: "Verified Revision 274 source pins and startup steps", system: lostcity-and-headless-client, status: done }
+  - { name: "CLI service commands to start, check, and stop LostCity", system: lostcity-and-headless-client, status: done }
+  - { name: "Representative gameplay verification of the local world", system: lostcity-and-headless-client, status: done }
 ---
 # Play LostCity locally
 
 [Roadmap](../roadmap.md)
 
 <!-- status:start -->
-- **Status:** In design (from its builds)
+- **Status:** Done (from its builds)
 - **Depends on:** [M0](project-setup.md)
 
 **Builds**
 
 | Component | System doc | Status |
 |---|---|---|
-| Verified Revision 274 source pins and startup steps | [LostCity and Aeris](../system/lostcity-and-aeris.md) | In design |
-| CLI service commands to start, check, and stop LostCity | [LostCity and Aeris](../system/lostcity-and-aeris.md) | In design |
-| Representative gameplay verification of the local world | [LostCity and Aeris](../system/lostcity-and-aeris.md) | In design |
+| Verified Revision 274 source pins and startup steps | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) | Done |
+| CLI service commands to start, check, and stop LostCity | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) | Done |
+| Representative gameplay verification of the local world | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) | Done |
 
 **Plans** (revisions to this milestone's builds)
 
@@ -53,7 +53,7 @@ Run these from the project root after the [M0 npm bootstrap](project-setup.md).
 | `runehive status lostcity` | Show whether the world is stopped, starting, or ready. |
 | `runehive stop lostcity` | Shut down the local world cleanly. |
 
-As other services are added, the CLI can accept their names and offer a single command to start or stop the full local stack. These commands now exist: with no service name, `runehive start`, `status`, and `stop` act on every registered service, and `npm start` and `npm stop` are shortcuts. Verifying save persistence and representative gameplay remains open.
+As other services are added, the CLI can accept their names and offer a single command to start or stop the full local stack. These commands now exist: with no service name, `runehive start`, `status`, and `stop` act on every registered service, and `npm start` and `npm stop` are shortcuts. The owner confirmed that character progress persisted after a restart. Representative gameplay coverage has not been fully documented.
 
 ## Done when
 

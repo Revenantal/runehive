@@ -20,7 +20,7 @@
     },
     {
       "name": "webclient",
-      "description": "Client-TS source, kept as the protocol and cache reference for Aeris.",
+      "description": "Client-TS source, kept as the protocol and cache reference for headless client.",
       "url": "https://github.com/LostCityRS/Client-TS.git",
       "branch": "274",
       "commit": "7d6ca61abda277cfed87d542e9e4aa3fe383b38d",
