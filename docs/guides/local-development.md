@@ -33,7 +33,9 @@ npm run runehive -- start lostcity # or name one service
 
 `start` runs the engine in the background and prints the browser URL (normally http://localhost:8888/rs2.cgi). The first start packs the cache and takes longer. The engine's log is `lostcity/.runehive/lostcity.log`. `stop` signals the whole process group and waits for the engine to save, and it never force-kills. LostCity is the only service for now. New services register in `tools/runehive.mjs`.
 
-The engine sometimes prints a V8 fatal-error trace at exit, after `Server shutdown complete`. The save has already finished by then.
+When local support services use SQLite, `npm start` initializes a missing or empty `lostcity/engine/db.sqlite` with the upstream SQLite migration. It leaves initialized databases alone; a partial or unexpected schema stops startup for manual investigation. MySQL setup is not automated. The engine's readiness message does not independently verify that every support service is healthy.
+
+The engine sometimes prints a V8 fatal-error trace at exit, after `Server shutdown complete`. Save persistence after such an error has not been independently verified.
 
 ## Optional: the `runehive` command
 

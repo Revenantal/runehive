@@ -22,7 +22,7 @@
 - `agent-runtime` imports `headless-client` through its public interface only.
 - `control-center` talks to the runtime through the API and event stream only. Never import runtime internals.
 - Match the module layout in [architecture](../system/architecture.md#repository-organization). Do not invent new top-level folders.
-- Never modify LostCity or read from `lostcity/` at runtime. Agents act only through the ordinary game protocol.
+- Agents never modify LostCity or read from `lostcity/` at runtime; they act only through the ordinary game protocol. Local service administration may inspect LostCity configuration and initialize an empty database using upstream tooling, without changing upstream source or reading game state for agents.
 
 ## Documentation in code
 

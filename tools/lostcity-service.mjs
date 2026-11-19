@@ -1,5 +1,6 @@
 // LostCity service control: start, status, and stop the engine from the project root.
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
+import { DatabaseSync } from 'node:sqlite';
 import {
   closeSync,
   existsSync,
@@ -8,6 +9,7 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs';
 import path from 'node:path';
@@ -91,6 +93,65 @@ export function status({ root, destination }) {
     : { state: 'starting', pid, logFile: p.logFile };
 }
 
+/** Initializes an empty local SQLite database when configured support services require it. */
+function initializeDatabase(engineDir, log) {
+  const configPath = path.join(engineDir, 'data', 'config', 'world.json');
+  if (!existsSync(configPath)) {
+    if (existsSync(path.join(engineDir, '.env'))) {
+      throw new Error('Legacy LostCity .env configuration requires manual database setup.');
+    }
+    return;
+  }
+  const config = JSON.parse(readFileSync(configPath, 'utf8'));
+  if (!config.login?.enabled && !config.friend?.enabled && !config.logger?.enabled) return;
+  if ((config.db?.backend ?? 'sqlite') !== 'sqlite') return;
+  const dbPath = path.join(engineDir, 'db.sqlite');
+  if (existsSync(dbPath) && statSync(dbPath).size > 0) {
+    const db = new DatabaseSync(dbPath, { readOnly: true });
+    try {
+      const tables = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all();
+      const names = new Set(tables.map((table) => table.name));
+      const required = [
+        '_prisma_migrations',
+        'ipban',
+        'account',
+        'account_login',
+        'hiscore',
+        'hiscore_large',
+        'friendlist',
+        'ignorelist',
+        'session',
+        'session_log',
+        'session_wealth',
+        'public_chat',
+        'private_chat',
+        'report',
+        'input_report',
+      ];
+      if (required.every((name) => names.has(name))) {
+        const unfinished = db
+          .prepare(
+            'SELECT 1 FROM _prisma_migrations WHERE finished_at IS NULL AND rolled_back_at IS NULL LIMIT 1',
+          )
+          .get();
+        if (!unfinished) return;
+      }
+      if (names.size > 0)
+        throw new Error(
+          'SQLite database already contains data or an incomplete schema; initialize it manually.',
+        );
+    } finally {
+      db.close();
+    }
+  }
+  log('Initializing empty LostCity SQLite database...');
+  for (const args of [['install'], ['run', 'sqlite:migrate']]) {
+    const result = spawnSync('npm', args, { cwd: engineDir, stdio: 'inherit' });
+    if (result.error || result.status !== 0)
+      throw new Error(`npm ${args.join(' ')} failed; database initialization did not complete.`);
+  }
+}
+
 /** Starts the engine in the background and waits until it reports ready. Returns an exit code. */
 export async function start({
   root,
@@ -108,6 +169,13 @@ export async function start({
     log(`LostCity is already ${current.state} (pid ${current.pid}).`);
     if (current.url) log(`Open ${current.url}`);
     return current.state === 'ready' ? 0 : 1;
+  }
+
+  try {
+    initializeDatabase(p.engineDir, log);
+  } catch (error) {
+    log(`LostCity database setup failed: ${error.message}`);
+    return 1;
   }
 
   mkdirSync(p.stateDir, { recursive: true });

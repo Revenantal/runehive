@@ -5,6 +5,7 @@ import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
+import { DatabaseSync } from 'node:sqlite';
 
 const cli = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -52,10 +53,55 @@ describe('runehive start/status/stop', () => {
     assert.match(result.out, /unknown service "nope"/);
   });
 
+  test('initializes an empty database and stops on migration failure', () => {
+    const engine = path.join(root, 'lostcity', 'engine');
+    mkdirSync(path.join(engine, 'data', 'config'), { recursive: true });
+    mkdirSync(path.join(root, 'lostcity', 'content'), { recursive: true });
+    writeFileSync(
+      path.join(engine, 'data', 'config', 'world.json'),
+      JSON.stringify({ login: { enabled: true }, db: { backend: 'sqlite' } }),
+    );
+    writeFileSync(
+      path.join(engine, 'package.json'),
+      JSON.stringify({
+        name: 'fixture',
+        scripts: { 'sqlite:migrate': 'node -e "process.exit(7)"' },
+      }),
+    );
+    const result = run(root, 'start');
+    assert.equal(result.code, 1);
+    assert.match(result.out, /Initializing empty LostCity SQLite database/);
+    assert.match(result.out, /sqlite:migrate failed/);
+    assert.doesNotMatch(result.out, /Starting LostCity \(pid/);
+    rmSync(engine, { recursive: true });
+  });
+
+  test('refuses to modify an existing partial database', () => {
+    const engine = path.join(root, 'lostcity', 'engine');
+    mkdirSync(path.join(engine, 'data', 'config'), { recursive: true });
+    mkdirSync(path.join(root, 'lostcity', 'content'), { recursive: true });
+    writeFileSync(path.join(engine, 'package.json'), JSON.stringify({ name: 'fixture' }));
+    writeFileSync(
+      path.join(engine, 'data', 'config', 'world.json'),
+      JSON.stringify({ login: { enabled: true }, db: { backend: 'sqlite' } }),
+    );
+    const db = new DatabaseSync(path.join(engine, 'db.sqlite'));
+    db.exec('CREATE TABLE custom_data (value TEXT)');
+    db.close();
+    const result = run(root, 'start');
+    assert.equal(result.code, 1);
+    assert.match(result.out, /incomplete schema/);
+    const check = new DatabaseSync(path.join(engine, 'db.sqlite'), { readOnly: true });
+    assert.ok(check.prepare("SELECT name FROM sqlite_master WHERE name = 'custom_data'").get());
+    check.close();
+    rmSync(path.join(engine, 'data'), { recursive: true });
+    rmSync(path.join(engine, 'db.sqlite'));
+  });
+
   test('starts a fake engine, reports ready, is idempotent, and stops it', () => {
     const engine = path.join(root, 'lostcity', 'engine');
     mkdirSync(engine, { recursive: true });
-    mkdirSync(path.join(root, 'lostcity', 'content'));
+    mkdirSync(path.join(root, 'lostcity', 'content'), { recursive: true });
     writeFileSync(
       path.join(engine, 'package.json'),
       JSON.stringify({
