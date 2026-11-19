@@ -9,7 +9,7 @@ Read the table in the current build order. Status comes from each milestone's bu
 <!-- milestones:start -->
 | Milestone | Status | Builds | Revisions | What it delivers |
 |---|---|---|---|---|
-| M0 · [Project organization and setup](milestones/project-setup.md) | In progress | 0/3 done | — | Written project guides, workspace folders, and a tested init command that fetches the LostCity sources locally. |
+| M0 · [Project organization and setup](milestones/project-setup.md) | Done | 3/3 done | — | Written project guides, workspace folders, and a tested init command that fetches the LostCity sources locally. |
 | M1 · [Play LostCity locally](milestones/local-lostcity.md) | In design | 0/3 done | — | A reproducible Revision 274 world the owner can manage from the project CLI and play in the graphical client. |
 | M2 · [Build the Headless Client](milestones/headless-client.md) | In design | 0/4 done | — | A working Headless Client (Aeris) usable through typed commands and TypeScript scripts. |
 | M3 · [Build the Execution layer](milestones/execution.md) | In design | 0/4 done | — | A bot can carry out a supplied task and verify the result in-game. |

@@ -5,25 +5,25 @@ delivers: "Written project guides, workspace folders, and a tested init command 
 depends_on: []
 design: []
 builds:
-  - { name: "Workspace scaffold and npm workspaces", system: architecture, status: in-progress }
-  - { name: "LostCity source manifest and init CLI", system: lostcity-and-aeris, status: in-progress }
-  - { name: "Project guides and agent instructions", system: none, status: in-progress }
+  - { name: "Workspace scaffold and npm workspaces", system: architecture, status: done }
+  - { name: "LostCity source manifest and init CLI", system: lostcity-and-aeris, status: done }
+  - { name: "Project guides and agent instructions", system: none, status: done }
 ---
 # Project organization and setup
 
 [Roadmap](../roadmap.md)
 
 <!-- status:start -->
-- **Status:** In progress (from its builds)
+- **Status:** Done (from its builds)
 - **Depends on:** None
 
 **Builds**
 
 | Component | System doc | Status |
 |---|---|---|
-| Workspace scaffold and npm workspaces | [Architecture and Repository](../system/architecture.md) | In progress |
-| LostCity source manifest and init CLI | [LostCity and Aeris](../system/lostcity-and-aeris.md) | In progress |
-| Project guides and agent instructions | — | In progress |
+| Workspace scaffold and npm workspaces | [Architecture and Repository](../system/architecture.md) | Done |
+| LostCity source manifest and init CLI | [LostCity and Aeris](../system/lostcity-and-aeris.md) | Done |
+| Project guides and agent instructions | — | Done |
 
 **Plans** (revisions to this milestone's builds)
 
