@@ -15,6 +15,7 @@ import {
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as lostcityService from './lostcity-service.mjs';
+import { monitor } from './lostcity-monitor.mjs';
 
 const toolsDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(toolsDir, '..');
@@ -29,6 +30,7 @@ Commands:
   start [service...]   Start services in the background (default: all). Waits until ready.
   status [service...]  Show whether each service is stopped, starting, or ready.
   stop [service...]    Stop services cleanly (default: all).
+  monitor              Watch LostCity player events from its SQLite database.
 
 Services: lostcity
 
@@ -36,6 +38,14 @@ Options:
   --root <dir>       Project root (default: the checkout containing this file)
   --manifest <file>  Source manifest (default: tools/lostcity-sources.json)
   -h, --help         Show this help
+
+Monitor options:
+  --player <name>    Match a player name (case-insensitive)
+  --event <text>     Match event text (case-insensitive substring)
+  --category <type>  all, session, position, or wealth (default: all)
+  --interval <sec>   Polling interval in seconds (default: 2; minimum: 0.1)
+  --limit <count>    Recent matching events to show initially (default: 20; 0–1000)
+  --once             Print recent events and exit
 `;
 
 /** Runs a Git command and returns trimmed stdout. */
@@ -208,18 +218,49 @@ export function init({ root, manifestPath, log = console.log }) {
 
 /** Parses command-line arguments. */
 function parseArgs(argv) {
-  const args = { root: defaultRoot, manifest: null, command: null, services: [], help: false };
+  const args = {
+    root: defaultRoot,
+    manifest: null,
+    command: null,
+    services: [],
+    help: false,
+    player: '',
+    event: '',
+    category: 'all',
+    interval: 2,
+    limit: 20,
+    once: false,
+    monitorOptions: false,
+  };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '-h' || a === '--help') args.help = true;
     else if (a === '--root') args.root = path.resolve(argv[++i] ?? '');
     else if (a === '--manifest') args.manifest = path.resolve(argv[++i] ?? '');
-    else if (a.startsWith('-')) throw new Error(`unknown option ${a}`);
+    else if (['--player', '--event', '--category', '--interval', '--limit'].includes(a)) {
+      const value = argv[++i];
+      if (value === undefined || value === '' || value.startsWith('--'))
+        throw new Error(`${a} requires a value`);
+      const key = a.slice(2);
+      args[key] = ['interval', 'limit'].includes(key) ? Number(value) : value;
+      args.monitorOptions = true;
+    } else if (a === '--once') {
+      args.once = true;
+      args.monitorOptions = true;
+    } else if (a.startsWith('-')) throw new Error(`unknown option ${a}`);
     else if (!args.command) args.command = a;
     else if (['start', 'status', 'stop'].includes(args.command)) args.services.push(a);
     else throw new Error(`unexpected argument ${a}`);
   }
   args.manifest ??= path.join(args.root, 'tools', 'lostcity-sources.json');
+  if (args.monitorOptions && args.command !== 'monitor')
+    throw new Error('monitor options require the monitor command');
+  if (!['all', 'session', 'position', 'wealth'].includes(args.category))
+    throw new Error('--category must be all, session, position, or wealth');
+  if (!Number.isFinite(args.interval) || args.interval < 0.1 || args.interval > 86400)
+    throw new Error('--interval must be between 0.1 and 86400 seconds');
+  if (!Number.isInteger(args.limit) || args.limit < 0 || args.limit > 1000)
+    throw new Error('--limit must be an integer between 0 and 1000');
   return args;
 }
 
@@ -277,6 +318,16 @@ async function main(argv) {
       return init({ root: args.root, manifestPath: args.manifest });
     } catch (error) {
       console.error(`runehive init: ${error.message}`);
+      return 1;
+    }
+  }
+  if (args.command === 'monitor') {
+    try {
+      const manifest = JSON.parse(readFileSync(args.manifest, 'utf8'));
+      await monitor({ ...args, destination: manifest.destination });
+      return 0;
+    } catch (error) {
+      console.error(`runehive monitor: ${error.message}`);
       return 1;
     }
   }

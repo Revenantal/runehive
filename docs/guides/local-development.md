@@ -35,6 +35,8 @@ npm run runehive -- start lostcity # or name one service
 
 When local support services use SQLite, `npm start` initializes a missing or empty `lostcity/engine/db.sqlite` with the upstream SQLite migration. It leaves initialized databases alone; a partial or unexpected schema stops startup for manual investigation. MySQL setup is not automated. The engine's readiness message does not independently verify that every support service is healthy.
 
+To watch player events recorded by LostCity's SQLite logger, run `npm run runehive -- monitor`. Press Ctrl-C to stop watching. The stream combines session events, wealth transactions and periodic position check-ins. Add `--category session|wealth|position` to select one, `--player <name>` for an exact player match, `--event <text>` for a case-insensitive event substring, `--interval <seconds>` to change polling, `--limit <count>` for initial history, or `--once` to print history and exit. For example: `npm run runehive -- monitor --category wealth --player Alice`. This human-facing, read-only view requires the upstream logger and SQLite; it is not an agent observation source. Events reflect what upstream records, not every action: some drops and pickups are filtered by value, positions are snapshots, and failed login attempts and dialogue actions are not guaranteed.
+
 The engine sometimes prints a V8 fatal-error trace at exit, after `Server shutdown complete`. Save persistence after such an error has not been independently verified.
 
 ## Optional: the `runehive` command
