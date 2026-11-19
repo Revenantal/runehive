@@ -24,13 +24,38 @@ const cli = path.resolve(
 test('experiment help and invalid startup are actionable without echoing inputs', () => {
   const help = spawnSync(process.execPath, [cli, '--help'], { encoding: 'utf8' });
   assert.equal(help.status, 0);
-  assert.match(help.stdout, /no game connection yet/);
+  assert.match(help.stdout, /Experimental headless client/);
   for (const args of [[], ['unknown-input'], ['run', 'unknown-input']]) {
     const result = spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
     assert.equal(result.status, 2);
-    assert.match(result.stderr, /Expected "run" or "--help"/);
+    assert.match(result.stderr, /Expected "run", "login", or "--help"/);
     assert.doesNotMatch(result.stderr, /unknown-input/);
   }
+});
+
+test('invalid account configuration is rejected without echoing its value', () => {
+  const marker = 'fixture-invalid-sensitive';
+  const result = spawnSync(process.execPath, [cli, 'login'], {
+    encoding: 'utf8',
+    env: { ...process.env, RUNEHIVE_EXPERIMENT_ACCOUNT: marker },
+  });
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /printable account name/);
+  assert.doesNotMatch(result.stdout + result.stderr, /fixture-invalid-sensitive/);
+});
+
+test('login prompts for an account and rejects invalid input', () => {
+  const env = { ...process.env };
+  delete env.RUNEHIVE_EXPERIMENT_ACCOUNT;
+  const result = spawnSync(process.execPath, [cli, 'login'], {
+    encoding: 'utf8',
+    env,
+    input: 'fixture-too-long-to-be-valid\n',
+  });
+  assert.equal(result.status, 2);
+  assert.match(result.stdout, /Experimental account:/);
+  assert.match(result.stderr, /printable account name/);
+  assert.doesNotMatch(result.stdout + result.stderr, /fixture-too-long-to-be-valid/);
 });
 
 test('logs isolate runs and reject unrecognized stop details', (t) => {

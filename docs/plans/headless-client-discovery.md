@@ -22,7 +22,7 @@ The longer-term client should expose game actions to a controller that can write
 
 ## Boundaries
 
-- Keep the server fully vanilla. Do not modify LostCity server source or configuration files to make an experiment work; if a change seems necessary, stop and discuss it with the owner. Normal upstream-generated runtime state and ordinary player actions are distinct from server modification.
+- Keep the server fully vanilla. Never modify LostCity server source to make an experiment work; change server configuration only with explicit owner approval. The owner approved setting the existing world's `node.production` to true to test ordinary-player sessions. Stop and discuss other server changes. Normal upstream-generated runtime state and ordinary player actions are distinct from server modification.
 - The experimental client uses only ordinary player protocol observations and actions. No teleporting, item grants, direct game-state edits, privileged server logs, or database reads as client observations. The existing server monitor is a separate human debugging aid.
 - Use the pinned Revision 274 sources and record revisions and environment per experiment. Verify compatibility and ordinary-player permissions rather than assuming them.
 - Use fresh characters for independent test rounds, starting with `HX0000` and incrementing. Verify username restrictions. Reusing an account is intentional for reconnect and persistence tests. Each account's password matches its username; these accounts are disposable and local only.
@@ -55,4 +55,4 @@ For every action experiment define a success condition before the attempt. Recor
 
 ## Implementation
 
-The bootstrap and initial lifecycle-logging checkpoints are documented in the [experiment index](../research/headless-client/README.md). The prototype is a foreground placeholder and does not yet connect to the game; action, observation, and protocol-error logging remain to be developed as the corresponding behavior is explored. Account and login discovery is the next checkpoint. No production client or LLM integration is implied by this plan.
+Bootstrap, initial lifecycle logging, and the first ordinary-player login experiments are documented in the [experiment index](../research/headless-client/README.md). The prototype can authenticate, but account freshness, character-state persistence, and session maintenance remain unverified. It does not yet decode game packets or perform a clean logout; action, observation, and protocol-error logging need further work as those behaviors are explored. No production client or LLM integration is implied by this plan.

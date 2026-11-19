@@ -11,7 +11,7 @@ export function createExperimentLog(root) {
   let closed = false;
 
   /** Writes a fixed event schema without accepting credentials or raw inputs. */
-  function record(event, signal) {
+  function record(event, details = {}) {
     const entry = {
       ts: new Date().toISOString(),
       level: 'info',
@@ -19,7 +19,7 @@ export function createExperimentLog(root) {
       component: 'headless-experiment',
       runId,
       clientId: 'client-01',
-      ...(signal ? { signal } : {}),
+      ...details,
     };
     writeFileSync(fd, `${JSON.stringify(entry)}\n`);
   }
@@ -33,7 +33,27 @@ export function createExperimentLog(root) {
     /** Records an operator-requested shutdown. */
     stopped(signal) {
       if (signal !== 'SIGINT' && signal !== 'SIGTERM') throw new Error('Invalid stop signal');
-      record('experiment.stopped', signal);
+      record('experiment.stopped', { signal });
+    },
+    /** Records the beginning of a login attempt without credentials. */
+    loginRequested() {
+      record('login.requested');
+    },
+    /** Records an accepted login and the client-visible permission level. */
+    loginAccepted(staffLevel) {
+      if (!Number.isInteger(staffLevel) || staffLevel < 0 || staffLevel > 255)
+        throw new Error('Invalid staff level');
+      record('login.accepted', { staffLevel });
+    },
+    /** Records a protocol rejection without any server-provided text. */
+    loginRejected(code) {
+      if (!Number.isInteger(code) || code < 0 || code > 255)
+        throw new Error('Invalid response code');
+      record('login.rejected', { code });
+    },
+    /** Records an unexpected end to the connection without raw error details. */
+    loginFailed() {
+      record('login.failed');
     },
     /** Releases the log file once. */
     close() {
