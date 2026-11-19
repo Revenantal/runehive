@@ -28,6 +28,10 @@ How the system works, shared across milestones. Each system doc lists the milest
 - [Repository guide](guides/repository-guide.md) — What each folder is for and what belongs in Git.
 - [Local development](guides/local-development.md) — Prerequisites, first run, and troubleshooting.
 
+## Research
+
+- [Headless client experiments](research/headless-client/README.md) — Disposable prototype commands and observed findings.
+
 ## Decisions
 
 - [Decisions](decisions/README.md) — Short records of why we chose what we chose. Read these before reversing a choice.

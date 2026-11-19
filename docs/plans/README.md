@@ -68,5 +68,5 @@ Commits, pull requests, and files that carried it out. Fill this in as the work 
 <!-- plans:start -->
 | Plan | Milestone | Status | System docs changed |
 |---|---|---|---|
-| [Explore the headless client](headless-client-discovery.md) | [M2](../milestones/headless-client.md) | In design | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) |
+| [Explore the headless client](headless-client-discovery.md) | [M2](../milestones/headless-client.md) | In progress | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) |
 <!-- plans:end -->

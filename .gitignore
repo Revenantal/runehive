@@ -1,5 +1,6 @@
 # Upstream LostCity checkout, local world configuration, and saves (provisioned by `runehive init`)
 /lostcity/
+/.runehive/
 
 node_modules/
 dist/

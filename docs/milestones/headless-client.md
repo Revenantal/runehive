@@ -35,7 +35,7 @@ builds:
 
 | Plan | Status |
 |---|---|
-| [Explore the headless client](../plans/headless-client-discovery.md) | In design |
+| [Explore the headless client](../plans/headless-client-discovery.md) | In progress |
 <!-- status:end -->
 
 ## Goal

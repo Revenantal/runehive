@@ -1,6 +1,6 @@
 ---
 title: "Explore the headless client"
-status: in-design
+status: in-progress
 milestone: M2
 system: [lostcity-and-headless-client]
 ---
@@ -9,7 +9,7 @@ system: [lostcity-and-headless-client]
 [Roadmap](../roadmap.md)
 
 <!-- status:start -->
-- **Status:** In design
+- **Status:** In progress
 - **Milestone:** [M2 · Build the Headless Client](../milestones/headless-client.md)
 - **System docs changed:** [LostCity and the Headless Client](../system/lostcity-and-headless-client.md)
 <!-- status:end -->
@@ -55,4 +55,4 @@ For every action experiment define a success condition before the attempt. Recor
 
 ## Implementation
 
-Not started. No production client or LLM integration is implied by this plan.
+The bootstrap and initial lifecycle-logging checkpoints are documented in the [experiment index](../research/headless-client/README.md). The prototype is a foreground placeholder and does not yet connect to the game; action, observation, and protocol-error logging remain to be developed as the corresponding behavior is explored. Account and login discovery is the next checkpoint. No production client or LLM integration is implied by this plan.
