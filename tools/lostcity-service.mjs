@@ -69,11 +69,71 @@ function groupAlive(pid) {
   return false;
 }
 
-/** Reads the recorded process ID, or null when none is recorded or it is stale. */
-function readPid(pidFile) {
-  if (!existsSync(pidFile)) return null;
-  const pid = Number.parseInt(readFileSync(pidFile, 'utf8'), 10);
-  return Number.isInteger(pid) && pid > 0 && groupAlive(pid) ? pid : null;
+/** Checks whether a process has the same working directory as the configured engine. */
+function engineCwd(pid, engineDir) {
+  try {
+    const cwd = statSync(`/proc/${pid}/cwd`);
+    const engine = statSync(engineDir);
+    return cwd.dev === engine.dev && cwd.ino === engine.ino;
+  } catch {
+    return false;
+  }
+}
+
+/** Confirms the group leader is the expected npm start process in this engine checkout. */
+function isEngineGroup(pid, engineDir) {
+  if (!existsSync('/proc/self/stat')) return groupAlive(pid);
+  try {
+    const args = readFileSync(`/proc/${pid}/cmdline`, 'utf8').split('\0');
+    return groupAlive(pid) && engineCwd(pid, engineDir) && /^npm (?:run )?start\b/.test(args[0]);
+  } catch {
+    return false;
+  }
+}
+
+/** Finds verified engine process groups if a PID file is stale or from another namespace. */
+function discoverEngineGroups(engineDir) {
+  if (!existsSync('/proc/self/stat')) return [];
+  const groups = new Set();
+  for (const entry of readdirSync('/proc')) {
+    if (!/^\d+$/.test(entry)) continue;
+    try {
+      const args = readFileSync(`/proc/${entry}/cmdline`, 'utf8').split('\0');
+      if (
+        !args.some((arg) => arg === 'src/app.ts') ||
+        !/(?:^|\/)node(?:\.exe)?$/.test(args[0]) ||
+        !engineCwd(entry, engineDir)
+      )
+        continue;
+      const stat = readFileSync(`/proc/${entry}/stat`, 'utf8');
+      const fields = stat.slice(stat.lastIndexOf(')') + 2).split(' ');
+      const group = Number(fields[2]);
+      if (fields[0] !== 'Z') groups.add(group);
+    } catch {
+      // The process exited or became inaccessible during the scan.
+    }
+  }
+  return [...groups];
+}
+
+/** Resolves a managed group or identifies matching groups without trusting a stale PID. */
+function resolveService(p) {
+  let pid = null;
+  try {
+    const value = Number(readFileSync(p.pidFile, 'utf8').trim());
+    if (Number.isInteger(value) && value > 0 && isEngineGroup(value, p.engineDir)) pid = value;
+  } catch {
+    // A missing or unreadable PID file is not proof that the engine stopped.
+  }
+  const groups = discoverEngineGroups(p.engineDir);
+  if (pid !== null && !groups.includes(pid)) groups.push(pid);
+  if (groups.length > 1) return { state: 'ambiguous', groups };
+  if (groups.length === 1) {
+    if (pid === groups[0]) return { state: 'managed', pid };
+    if (isEngineGroup(groups[0], p.engineDir)) return { state: 'recovered', pid: groups[0] };
+    return { state: 'unmanaged', pid: groups[0] };
+  }
+  return { state: 'stopped' };
 }
 
 /** Returns the browser URL from the log once the engine reports ready, else null. */
@@ -85,8 +145,13 @@ function readyUrl(logFile) {
 /** Reports whether the world is stopped, starting, or ready. */
 export function status({ root, destination }) {
   const p = servicePaths(root, destination);
-  const pid = readPid(p.pidFile);
-  if (pid === null) return { state: 'stopped', logFile: p.logFile };
+  const service = resolveService(p);
+  if (service.state === 'stopped') return { state: 'stopped', logFile: p.logFile };
+  if (service.state === 'ambiguous') return { state: 'ambiguous', logFile: p.logFile };
+  if (service.state === 'unmanaged')
+    return { state: 'unmanaged', pid: service.pid, logFile: p.logFile };
+  const { pid } = service;
+  if (service.state === 'recovered') return { state: 'running', pid, logFile: p.logFile };
   const url = readyUrl(p.logFile);
   return url
     ? { state: 'ready', pid, url, logFile: p.logFile }
@@ -202,6 +267,12 @@ export async function start({
   while (Date.now() < deadline) {
     const url = readyUrl(p.logFile);
     if (url) {
+      // Upstream logs readiness before all listeners have finished binding.
+      await sleep(2000);
+      if (!groupAlive(child.pid) || /EADDRINUSE/.test(readFileSync(p.logFile, 'utf8'))) {
+        log(`LostCity exited or encountered a port conflict during startup. See ${p.logFile}`);
+        return 1;
+      }
       log(`LostCity is ready. Open ${url}`);
       return 0;
     }
@@ -219,12 +290,25 @@ export async function start({
 /** Stops the engine started by `start`, giving it time to save. Returns an exit code. */
 export async function stop({ root, destination, log = console.log, timeoutMs = STOP_TIMEOUT_MS }) {
   const p = servicePaths(root, destination);
-  const pid = readPid(p.pidFile);
-  if (pid === null) {
+  const service = resolveService(p);
+  if (service.state === 'ambiguous') {
+    log(
+      'Multiple matching LostCity process groups found; inspect them manually. No process was signaled.',
+    );
+    return 1;
+  }
+  if (service.state === 'unmanaged') {
+    log('A matching LostCity process is unmanaged; inspect it manually. No process was signaled.');
+    return 1;
+  }
+  if (service.state === 'stopped') {
     rmSync(p.pidFile, { force: true });
-    log('LostCity is not running (no process started by runehive).');
+    log('LostCity is not running (no matching process found).');
     return 0;
   }
+  const { pid } = service;
+  if (service.state === 'recovered')
+    log('Recovered a matching LostCity process from a stale or foreign PID file.');
   log(`Stopping LostCity (pid ${pid})...`);
   try {
     process.kill(-pid, 'SIGTERM');
