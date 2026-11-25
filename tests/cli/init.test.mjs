@@ -22,10 +22,16 @@ const GIT_ID = [
   'commit.gpgsign=false',
 ];
 
+/** Returns the environment without GIT_* variables, which Git hooks set and which redirect git commands. */
+function cleanGitEnv(env = process.env) {
+  return Object.fromEntries(Object.entries(env).filter(([key]) => !key.startsWith('GIT_')));
+}
+
 function git(cwd, ...args) {
   return execFileSync('git', [...GIT_ID, ...args], {
     cwd,
     encoding: 'utf8',
+    env: cleanGitEnv(),
     stdio: ['ignore', 'pipe', 'pipe'],
   }).trim();
 }
@@ -42,7 +48,10 @@ function makeUpstream(dir, name) {
 }
 
 function run(args) {
-  const result = spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
+  const result = spawnSync(process.execPath, [cli, ...args], {
+    encoding: 'utf8',
+    env: cleanGitEnv(),
+  });
   return { code: result.status, out: result.stdout + result.stderr };
 }
 
