@@ -28,7 +28,10 @@ test('experiment help and invalid startup are actionable without echoing inputs'
   for (const args of [[], ['unknown-input'], ['run', 'unknown-input']]) {
     const result = spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
     assert.equal(result.status, 2);
-    assert.match(result.stderr, /Expected "run", "login", "session", "session-idle", or "--help"/);
+    assert.match(
+      result.stderr,
+      /Expected "run", "login", "session", "session-idle", "logout", "logout-abrupt", or "--help"/,
+    );
     assert.doesNotMatch(result.stderr, /unknown-input/);
   }
 });

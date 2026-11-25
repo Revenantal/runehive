@@ -49,6 +49,22 @@ test('login handles fragmented handshake and accepts ordinary-player reply', asy
   assert.deepEqual([...socket.writes[2], ...socket.writes[3]], [107, 5]);
 });
 
+test('button clicks use the next cipher byte and a big-endian component id', async () => {
+  const socket = new FakeSocket([2, 0, 1]);
+  const result = await login({
+    account: ['HX', '9999'].join(''),
+    fetcher,
+    connect: () => socket,
+    random: () => Buffer.alloc(8),
+  });
+  result.sendButton(2458);
+  assert.deepEqual([...socket.writes[2]], [252, 9, 154]);
+  assert.throws(() => result.sendButton(-1), /INVALID_COMPONENT/);
+  assert.throws(() => result.sendButton(65536), /INVALID_COMPONENT/);
+  assert.throws(() => result.sendButton(1.5), /INVALID_COMPONENT/);
+  assert.equal(socket.writes.length, 3);
+});
+
 test('login returns a rejection without inventing its cause', async () => {
   const socket = new FakeSocket([3]);
   const result = await login({

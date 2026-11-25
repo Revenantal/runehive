@@ -75,6 +75,34 @@ export function createExperimentLog(root) {
         throw new Error('Invalid session outcome');
       record('session.finished', { reason, elapsedMs, bytes, keepalives });
     },
+    /** Records that a logout (clean button click or abrupt disconnect) was requested. */
+    logoutRequested(mode) {
+      if (!['clean', 'abrupt'].includes(mode)) throw new Error('Invalid logout mode');
+      record('logout.requested', { mode });
+    },
+    /** Records what the client observed after the logout request. */
+    logoutObserved(reason, elapsedMs) {
+      if (
+        !['closed', 'no-close', 'closed-before-request', 'send-failed'].includes(reason) ||
+        !Number.isSafeInteger(elapsedMs) ||
+        elapsedMs < 0
+      )
+        throw new Error('Invalid logout observation');
+      record('logout.observed', { reason, elapsedMs });
+    },
+    /** Records one login attempt made after logout, with the protocol-visible result only. */
+    reloginAttempted(attempt, outcome, code, elapsedMs) {
+      if (
+        !Number.isSafeInteger(attempt) ||
+        attempt < 1 ||
+        !['accepted', 'rejected', 'failed'].includes(outcome) ||
+        !(code === null || (Number.isInteger(code) && code >= 0 && code <= 255)) ||
+        !Number.isSafeInteger(elapsedMs) ||
+        elapsedMs < 0
+      )
+        throw new Error('Invalid relogin observation');
+      record('relogin.attempted', { attempt, outcome, code, elapsedMs });
+    },
     /** Releases the log file once. */
     close() {
       if (!closed) {

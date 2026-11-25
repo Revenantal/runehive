@@ -2,6 +2,7 @@
 import { createInterface } from 'node:readline/promises';
 import { createExperimentLog } from './log.mjs';
 import { login } from './login.mjs';
+import { runLogoutExperiment } from './logout.mjs';
 import { observeSession } from './session.mjs';
 
 const HELP = `Experimental headless client
@@ -11,6 +12,8 @@ Usage:
   node tools/headless-experiment/cli.mjs login   Prompt for an account and connect
   node tools/headless-experiment/cli.mjs session  Observe 75 seconds with keepalives
   node tools/headless-experiment/cli.mjs session-idle  Observe 75 seconds without keepalives
+  node tools/headless-experiment/cli.mjs logout  Click the logout button, then test relogin
+  node tools/headless-experiment/cli.mjs logout-abrupt  Drop the connection, then test relogin
   node tools/headless-experiment/cli.mjs --help  Show this help
 
 Each run writes a private JSONL log under .runehive/headless-experiment/ in the current directory.
@@ -214,6 +217,96 @@ async function runLogin(mode = 'login') {
   }
 }
 
+/** Runs the clean-logout or abrupt-disconnect experiment for one account. */
+async function runLogoutCommand(mode) {
+  let account;
+  try {
+    account = process.env.RUNEHIVE_EXPERIMENT_ACCOUNT ?? (await promptAccount());
+  } catch {
+    console.error('Could not read the experimental account.');
+    process.exitCode = 1;
+    return;
+  }
+  if (!account || !/^[\x20-\x7e]{1,12}$/.test(account)) {
+    console.error('Enter a printable account name of 1–12 characters.');
+    process.exitCode = 2;
+    return;
+  }
+  let log;
+  try {
+    log = createExperimentLog(process.cwd());
+    log.started();
+    log.loginRequested();
+  } catch {
+    try {
+      log?.close();
+    } catch {
+      /* The startup failure is reported below without system details. */
+    }
+    console.error('Could not create or write the experiment log; no experiment was started.');
+    process.exitCode = 1;
+    return;
+  }
+  const controller = new AbortController();
+  let interruptedBy = null;
+  const onSignal = (signal) => {
+    interruptedBy ??= signal;
+    controller.abort();
+  };
+  const onInterrupt = () => onSignal('SIGINT');
+  const onTerminate = () => onSignal('SIGTERM');
+  process.once('SIGINT', onInterrupt);
+  process.once('SIGTERM', onTerminate);
+  const sleep = (ms, cancel) =>
+    new Promise((resolve) => {
+      const finish = () => {
+        clearTimeout(timer);
+        controller.signal.removeEventListener('abort', finish);
+        cancel?.removeEventListener('abort', finish);
+        resolve();
+      };
+      const timer = setTimeout(finish, ms);
+      controller.signal.addEventListener('abort', finish, { once: true });
+      cancel?.addEventListener('abort', finish, { once: true });
+    });
+  console.log(
+    `${mode === 'clean' ? 'Clean logout' : 'Abrupt disconnect'} experiment. Run ID: ${log.runId}.`,
+  );
+  let summary;
+  try {
+    summary = await runLogoutExperiment({
+      account,
+      mode,
+      loginFn: login,
+      log,
+      sleep,
+      now: () => performance.now(),
+      signal: controller.signal,
+    });
+  } catch {
+    summary = { stage: 'experiment', outcome: 'error', relogins: [] };
+  }
+  process.removeListener('SIGINT', onInterrupt);
+  process.removeListener('SIGTERM', onTerminate);
+  try {
+    if (interruptedBy) log.stopped(interruptedBy);
+    log.close();
+  } catch {
+    console.error('Could not finish the experiment log.');
+    process.exitCode = 1;
+  }
+  console.log(`Result: ${summary.stage ?? 'done'} / ${summary.outcome}.`);
+  if (summary.close)
+    console.log(
+      `Connection ${summary.close.reason} ${summary.close.elapsedMs} ms after the request.`,
+    );
+  for (const r of summary.relogins)
+    console.log(
+      `Relogin attempt ${r.attempt} at ${r.elapsedMs} ms: ${r.outcome}${r.code === null ? '' : ` (protocol code ${r.code})`}.`,
+    );
+  if (summary.outcome !== 'relogin-accepted') process.exitCode = 1;
+}
+
 /** Validates the small command surface and starts the requested experiment. */
 function main(args) {
   if (args.length === 1 && (args[0] === '--help' || args[0] === '-h')) {
@@ -224,9 +317,13 @@ function main(args) {
     void runLogin(args[0]);
     return;
   }
+  if (args.length === 1 && ['logout', 'logout-abrupt'].includes(args[0])) {
+    void runLogoutCommand(args[0] === 'logout' ? 'clean' : 'abrupt');
+    return;
+  }
   if (args.length !== 1 || args[0] !== 'run') {
     console.error(
-      'Expected "run", "login", "session", "session-idle", or "--help". No experiment was started.',
+      'Expected "run", "login", "session", "session-idle", "logout", "logout-abrupt", or "--help". No experiment was started.',
     );
     process.exitCode = 2;
     return;

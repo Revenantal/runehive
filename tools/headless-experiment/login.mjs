@@ -154,6 +154,12 @@ export async function login({
       kind: 'accepted',
       staffLevel: flags[0],
       socket,
+      /** Sends one ISAAC-encoded interface button click for the given component id. */
+      sendButton(component) {
+        if (!Number.isInteger(component) || component < 0 || component > 0xffff)
+          throw new Error('INVALID_COMPONENT');
+        socket.write(Buffer.from([(9 + cipher.nextInt) & 255, component >> 8, component & 255]));
+      },
       /** Sends the protocol's ISAAC-encoded no-timeout opcode. */
       sendKeepalive() {
         socket.write(Buffer.from([(120 + cipher.nextInt) & 255]));
