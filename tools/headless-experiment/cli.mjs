@@ -2,12 +2,15 @@
 import { createInterface } from 'node:readline/promises';
 import { createExperimentLog } from './log.mjs';
 import { login } from './login.mjs';
+import { observeSession } from './session.mjs';
 
 const HELP = `Experimental headless client
 
 Usage:
   node tools/headless-experiment/cli.mjs run     Start the foreground experiment
   node tools/headless-experiment/cli.mjs login   Prompt for an account and connect
+  node tools/headless-experiment/cli.mjs session  Observe 75 seconds with keepalives
+  node tools/headless-experiment/cli.mjs session-idle  Observe 75 seconds without keepalives
   node tools/headless-experiment/cli.mjs --help  Show this help
 
 Each run writes a private JSONL log under .runehive/headless-experiment/ in the current directory.
@@ -69,7 +72,7 @@ async function promptAccount() {
 }
 
 /** Connects one experimental account and reports only safe protocol outcomes. */
-async function runLogin() {
+async function runLogin(mode = 'login') {
   let account;
   try {
     account = process.env.RUNEHIVE_EXPERIMENT_ACCOUNT ?? (await promptAccount());
@@ -85,10 +88,13 @@ async function runLogin() {
   }
   let log;
   let socket;
+  let session;
+  const counts = { bytes: 0 };
   let stopped = false;
   const stop = (signal) => {
     if (stopped) return;
     stopped = true;
+    session?.stop();
     if (socket) socket.destroy();
     try {
       log.stopped(signal);
@@ -108,7 +114,12 @@ async function runLogin() {
     process.once('SIGINT', onInterrupt);
     process.once('SIGTERM', onTerminate);
     console.log(`Login requested. Run ID: ${log.runId}.`);
-    const result = await login({ account });
+    const result = await login({
+      account,
+      onBytes: (count) => {
+        counts.bytes += count;
+      },
+    });
     socket = result.socket;
     if (stopped) {
       socket.destroy();
@@ -129,6 +140,52 @@ async function runLogin() {
         log.close();
       } else {
         console.log('Login accepted as an ordinary player. Press Ctrl-C to disconnect.');
+        if (mode !== 'login') {
+          const keepalive = mode === 'session';
+          log.sessionStarted(keepalive);
+          console.log(
+            `Observing for up to 75 seconds (${keepalive ? 'with' : 'without'} keepalives).`,
+          );
+          session = observeSession({
+            socket,
+            sendKeepalive: result.sendKeepalive,
+            keepalive,
+            counts,
+            report: ({ elapsedMs, bytes, keepalives }) => {
+              try {
+                log.sessionObserved(elapsedMs, bytes, keepalives);
+              } catch {
+                console.error('Could not write the experiment log.');
+                process.exitCode = 1;
+                socket.destroy();
+              }
+            },
+            finish: (reason, { elapsedMs, bytes, keepalives }) => {
+              try {
+                log.sessionFinished(reason, elapsedMs, bytes, keepalives);
+              } catch {
+                console.error('Could not finish the experiment log.');
+                process.exitCode = 1;
+              }
+              if (reason === 'interrupted') return;
+              stopped = true;
+              process.removeListener('SIGINT', onInterrupt);
+              process.removeListener('SIGTERM', onTerminate);
+              socket.destroy();
+              try {
+                log.close();
+              } catch {
+                console.error('Could not close the experiment log.');
+                process.exitCode = 1;
+              }
+              console.log(
+                `Session ended: ${reason}; ${bytes} bytes received, ${keepalives} keepalives queued.`,
+              );
+              if (reason !== 'deadline') process.exitCode = 1;
+            },
+          });
+          return;
+        }
         socket.once('close', () => {
           if (!stopped) {
             try {
@@ -163,12 +220,14 @@ function main(args) {
     console.log(HELP);
     return;
   }
-  if (args.length === 1 && args[0] === 'login') {
-    void runLogin();
+  if (args.length === 1 && ['login', 'session', 'session-idle'].includes(args[0])) {
+    void runLogin(args[0]);
     return;
   }
   if (args.length !== 1 || args[0] !== 'run') {
-    console.error('Expected "run", "login", or "--help". No experiment was started.');
+    console.error(
+      'Expected "run", "login", "session", "session-idle", or "--help". No experiment was started.',
+    );
     process.exitCode = 2;
     return;
   }

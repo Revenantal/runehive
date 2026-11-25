@@ -44,6 +44,9 @@ test('login handles fragmented handshake and accepts ordinary-player reply', asy
   assert.equal(socket.writes[1][0], 16);
   assert.equal(socket.writes[1][1], socket.writes[1].length - 2);
   assert.equal(socket.writes[1].includes(Buffer.from(account)), false);
+  result.sendKeepalive();
+  result.sendKeepalive();
+  assert.deepEqual([...socket.writes[2], ...socket.writes[3]], [107, 5]);
 });
 
 test('login returns a rejection without inventing its cause', async () => {

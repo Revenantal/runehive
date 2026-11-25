@@ -55,6 +55,26 @@ export function createExperimentLog(root) {
     loginFailed() {
       record('login.failed');
     },
+    /** Records which bounded session variant was started. */
+    sessionStarted(keepalive) {
+      if (typeof keepalive !== 'boolean') throw new Error('Invalid session mode');
+      record('session.started', { keepalive });
+    },
+    /** Records aggregated transport observations with no packet contents. */
+    sessionObserved(elapsedMs, bytes, keepalives) {
+      if (![elapsedMs, bytes, keepalives].every((n) => Number.isSafeInteger(n) && n >= 0))
+        throw new Error('Invalid session counters');
+      record('session.observed', { elapsedMs, bytes, keepalives });
+    },
+    /** Records how the bounded session experiment ended. */
+    sessionFinished(reason, elapsedMs, bytes, keepalives) {
+      if (
+        !['deadline', 'closed', 'send-error', 'interrupted'].includes(reason) ||
+        ![elapsedMs, bytes, keepalives].every((n) => Number.isSafeInteger(n) && n >= 0)
+      )
+        throw new Error('Invalid session outcome');
+      record('session.finished', { reason, elapsedMs, bytes, keepalives });
+    },
     /** Releases the log file once. */
     close() {
       if (!closed) {

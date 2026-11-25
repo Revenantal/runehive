@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import net from 'node:net';
+import { Isaac } from './isaac.mjs';
 
 // Public parameters from the pinned browser client's bundled login implementation.
 const EXPONENT = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
@@ -78,9 +79,11 @@ function makeReader(socket) {
       return value;
     },
     /** Discards subsequent packets until packet decoding is implemented. */
-    discard() {
+    discard(onBytes) {
       socket.removeAllListeners('data');
+      if (buffer.length) onBytes(buffer.length);
       buffer = Buffer.alloc(0);
+      socket.on('data', (data) => onBytes(data.length));
       socket.resume();
     },
   };
@@ -96,6 +99,7 @@ export async function login({
   fetcher = fetch,
   connect = net.createConnection,
   random = randomBytes,
+  onBytes = () => {},
 }) {
   if (
     typeof account !== 'string' ||
@@ -124,9 +128,10 @@ export async function login({
     if (hello[8] !== 0) return { kind: 'rejected', code: hello[8], socket };
     const seed = await reader.read(8);
     const uid = Buffer.from([0, 0, 5, 57]);
+    const clientSeed = random(8);
     const credentials = Buffer.concat([
       Buffer.from([10]),
-      random(8),
+      clientSeed,
       seed,
       uid,
       Buffer.from(`${account}\n${password}\n`, 'ascii'),
@@ -137,9 +142,23 @@ export async function login({
     const code = (await reader.read(1))[0];
     if (code !== 2) return { kind: 'rejected', code, socket };
     const flags = await reader.read(2);
-    reader.discard();
+    reader.discard(onBytes);
     socket.setTimeout(0);
-    return { kind: 'accepted', staffLevel: flags[0], socket };
+    const cipher = new Isaac([
+      clientSeed.readInt32BE(0),
+      clientSeed.readInt32BE(4),
+      seed.readInt32BE(0),
+      seed.readInt32BE(4),
+    ]);
+    return {
+      kind: 'accepted',
+      staffLevel: flags[0],
+      socket,
+      /** Sends the protocol's ISAAC-encoded no-timeout opcode. */
+      sendKeepalive() {
+        socket.write(Buffer.from([(120 + cipher.nextInt) & 255]));
+      },
+    };
   } catch (error) {
     socket.destroy();
     throw error;
