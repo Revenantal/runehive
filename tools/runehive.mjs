@@ -28,7 +28,7 @@ Commands:
            local edits, unexpected origins, and occupied paths.
 
   start [service...]   Start services in the background (default: all). Waits until ready.
-  status [service...]  Show whether each service is stopped, starting, or ready.
+  status [service...]  Show each service's process and readiness status.
   stop [service...]    Stop services cleanly (default: all).
   monitor              Watch LostCity player events from its SQLite database.
 
@@ -273,7 +273,7 @@ const SERVICES = {
     status: (ctx) => {
       const s = lostcityService.status(ctx);
       ctx.log(`lostcity: ${s.state}${s.url ? `  ${s.url}` : ''}${s.pid ? `  (pid ${s.pid})` : ''}`);
-      return Promise.resolve(s.state === 'ready' ? 0 : 1);
+      return Promise.resolve(['ready', 'running'].includes(s.state) ? 0 : 1);
     },
     /** Stops the local LostCity world. */
     stop: (ctx) => lostcityService.stop(ctx),

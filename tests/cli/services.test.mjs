@@ -1,4 +1,5 @@
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
+import { once } from 'node:events';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -98,19 +99,101 @@ describe('runehive start/status/stop', () => {
     rmSync(path.join(engine, 'db.sqlite'));
   });
 
+  test('rejects readiness followed by a port-binding failure', () => {
+    const engine = path.join(root, 'lostcity', 'engine');
+    mkdirSync(path.join(engine, 'src'), { recursive: true });
+    mkdirSync(path.join(root, 'lostcity', 'content'), { recursive: true });
+    writeFileSync(
+      path.join(engine, 'src', 'app.ts'),
+      "console.log('World ready: Visit http://localhost:1/rs2.cgi'); setTimeout(() => { console.error('EADDRINUSE'); process.exit(1); }, 250);",
+    );
+    writeFileSync(
+      path.join(engine, 'package.json'),
+      JSON.stringify({ name: 'fixture', scripts: { start: 'node src/app.ts' } }),
+    );
+    const result = run(root, 'start');
+    assert.equal(result.code, 1, result.out);
+    assert.match(result.out, /port conflict during startup/);
+    assert.doesNotMatch(result.out, /LostCity is ready/);
+  });
+
+  test('refuses to stop a manually launched engine', async (t) => {
+    if (process.platform !== 'linux') return t.skip('Linux process discovery');
+    const engine = path.join(root, 'lostcity', 'engine');
+    mkdirSync(path.join(engine, 'src'), { recursive: true });
+    mkdirSync(path.join(root, 'lostcity', 'content'), { recursive: true });
+    writeFileSync(
+      path.join(engine, 'src', 'app.ts'),
+      "console.log('fixture ready'); setInterval(() => {}, 1000);",
+    );
+    writeFileSync(
+      path.join(engine, 'package.json'),
+      JSON.stringify({ name: 'fixture', scripts: { start: 'node src/app.ts' } }),
+    );
+    const child = spawn(process.execPath, ['src/app.ts'], {
+      cwd: engine,
+      detached: true,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    t.after(() => {
+      try {
+        process.kill(-child.pid, 'SIGTERM');
+      } catch {
+        /* Already exited. */
+      }
+    });
+    await once(child.stdout, 'data');
+    assert.match(run(root, 'status').out, /lostcity: unmanaged/);
+    assert.equal(run(root, 'start').code, 1);
+    const stopped = run(root, 'stop');
+    assert.equal(stopped.code, 1);
+    assert.match(stopped.out, /No process was signaled/);
+    const closed = once(child, 'exit');
+    process.kill(-child.pid, 'SIGTERM');
+    await closed;
+  });
+
+  test('refuses to stop multiple matching process groups', async (t) => {
+    if (process.platform !== 'linux') return t.skip('Linux process discovery');
+    const engine = path.join(root, 'lostcity', 'engine');
+    const children = Array.from({ length: 2 }, () =>
+      spawn(process.execPath, ['src/app.ts'], {
+        cwd: engine,
+        detached: true,
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }),
+    );
+    t.after(() => {
+      for (const child of children) {
+        try {
+          process.kill(-child.pid, 'SIGTERM');
+        } catch {
+          /* Already exited. */
+        }
+      }
+    });
+    await Promise.all(children.map((child) => once(child.stdout, 'data')));
+    assert.match(run(root, 'status').out, /lostcity: ambiguous/);
+    const stopped = run(root, 'stop');
+    assert.equal(stopped.code, 1);
+    assert.match(stopped.out, /No process was signaled/);
+    const exited = children.map((child) => once(child, 'exit'));
+    for (const child of children) process.kill(-child.pid, 'SIGTERM');
+    await Promise.all(exited);
+  });
+
   test('starts a fake engine, reports ready, is idempotent, and stops it', () => {
     const engine = path.join(root, 'lostcity', 'engine');
     mkdirSync(engine, { recursive: true });
     mkdirSync(path.join(root, 'lostcity', 'content'), { recursive: true });
+    mkdirSync(path.join(engine, 'src'), { recursive: true });
+    writeFileSync(
+      path.join(engine, 'src', 'app.ts'),
+      "console.log('World ready: Visit http://localhost:1/rs2.cgi'); setInterval(() => {}, 1000);",
+    );
     writeFileSync(
       path.join(engine, 'package.json'),
-      JSON.stringify({
-        name: 'fake-engine',
-        scripts: {
-          start:
-            'node -e "console.log(\'World ready: Visit http://localhost:1/rs2.cgi\'); setInterval(() => {}, 1000)"',
-        },
-      }),
+      JSON.stringify({ name: 'fake-engine', scripts: { start: 'node src/app.ts' } }),
     );
 
     assert.equal(run(root, 'status').code, 1);
@@ -127,8 +210,19 @@ describe('runehive start/status/stop', () => {
     assert.equal(again.code, 0);
     assert.match(again.out, /already ready/);
 
+    if (process.platform === 'linux') {
+      const pidFile = path.join(root, 'lostcity', '.runehive', 'lostcity.pid');
+      writeFileSync(pidFile, `${process.pid}\n`);
+      const recovered = run(root, 'status');
+      assert.equal(recovered.code, 0);
+      assert.match(recovered.out, /lostcity: running/);
+      const duplicate = run(root, 'start');
+      assert.equal(duplicate.code, 1);
+      assert.match(duplicate.out, /already running/);
+    }
     const stopped = run(root, 'stop');
     assert.equal(stopped.code, 0, stopped.out);
+    if (process.platform === 'linux') assert.match(stopped.out, /Recovered a matching/);
     assert.match(stopped.out, /LostCity stopped/);
     assert.match(run(root, 'status').out, /lostcity: stopped/);
   });
