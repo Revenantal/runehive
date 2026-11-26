@@ -58,6 +58,8 @@ Nothing here showed that either model cannot work. Process-per-client isolates f
 
 ## Decision for the owner: device identity
 
+> Decided: each client sends its own device id ([decision 0009](../../decisions/0009-distinct-device-ids-per-client.md)).
+
 The measurements leave one choice that is not technical. To run more than four clients on one machine the options are:
 
 1. **Give each client its own device id.** Six concurrent logins worked. This is what separate installations of the real client would send, and it needs no waiting. It does depend on the server trusting a client-supplied value, and it sidesteps a limit the server applies to that value.

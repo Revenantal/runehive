@@ -30,7 +30,7 @@ test('experiment help and invalid startup are actionable without echoing inputs'
     assert.equal(result.status, 2);
     assert.match(
       result.stderr,
-      /Expected "run", "login", "session", "session-idle", "logout", "logout-abrupt", "observe", "observe-designed", "observe-walking", "supervise", or "--help"/,
+      /Expected "run", "login", "session", "session-idle", "logout", "logout-abrupt", "observe", "observe-designed", "observe-walking", "supervise", "supervise-children", or "--help"/,
     );
     assert.doesNotMatch(result.stderr, /unknown-input/);
   }

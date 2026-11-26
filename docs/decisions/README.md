@@ -50,3 +50,4 @@ What gets easier, what gets harder, and what we must now do.
 | [0006. Flat workspace layout](0006-flat-workspace-layout.md) | Accepted |
 | [0007. Engineering standards defaults](0007-engineering-standards-defaults.md) | Accepted |
 | [0008. One LostCity server at a time](0008-one-lostcity-server-at-a-time.md) | Accepted |
+| [0009. Each headless client sends its own device id](0009-distinct-device-ids-per-client.md) | Accepted |

@@ -11,6 +11,7 @@ export const CLIENT_STATES = [
   'logged-out',
   'rejected',
   'failed',
+  'unresponsive',
 ];
 
 const KEEPALIVE_MS = 1_000;
@@ -21,7 +22,7 @@ export function labelFor(number) {
 }
 
 /** Writes the state file atomically so a reader never sees half a file. */
-function writeState(stateFile, clients, elapsedMs) {
+export function writeState(stateFile, clients, elapsedMs) {
   mkdirSync(path.dirname(stateFile), { recursive: true, mode: 0o700 });
   const body = {
     elapsedMs,

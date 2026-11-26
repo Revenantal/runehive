@@ -135,6 +135,7 @@ export function createExperimentLog(root, { clientId = 'client-01' } = {}) {
           'logged-out',
           'rejected',
           'failed',
+          'unresponsive',
         ].includes(state)
       )
         throw new Error('Invalid client state');
