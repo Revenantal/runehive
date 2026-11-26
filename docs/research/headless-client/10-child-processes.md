@@ -29,7 +29,7 @@ Admission passed: all six in about 4.4 s of supervisor time, with no refusals. I
 Two things in the timings are worth keeping:
 
 - The stalled client was caught about 5 s after the stall, which is the watchdog threshold I set. The server would have closed an idle session at about 60 s ([04](04-session-maintenance.md)), so the watchdog acts well before the server does.
-- The killed child was marked `failed` at 16.2 s on the supervisor's own clock, which is when the earlier clients' logouts completed, not the moment of the kill. The state was correct but its timestamp was late. I did not find out why.
+- The earlier log excerpt used a different time origin from the supervisor summary, so it does not establish a delayed failure notification.
 
 ## Run B: kill the parent with SIGKILL
 
@@ -44,6 +44,19 @@ Six clients, one second apart, held 120 s, then the parent was killed at about 1
 A worker leaves the game when its message channel closes: it clicks the logout button and exits when the server closes the connection, or after five seconds. So **no orphans** was confirmed, and the clean logout worked for five of six.
 
 **Unexplained:** client 3 closed its connection at the same moment but the server logged it out 30 seconds later, as after an abrupt disconnect ([05](05-logout.md)). Possibilities I did not test: the logout click was not honoured for that character at that moment (the server may defer a logout in some states), or the worker's connection closed before the server processed the click. The server's records show only the outcome. Until it is understood, a supervisor cannot assume a parent crash always produces a clean logout; it should treat a client that stays "online" after its worker is gone as stale for up to about 35 s, as in [05](05-logout.md).
+
+## Follow-up: two more parent-kill runs
+
+Two further runs each admitted six fresh accounts, captured the actual parent PID and its six child PIDs, then sent `SIGKILL` to the parent. The workers were no longer live at the first one-second poll in both runs. Human-only SQLite session records and one-second polling showed:
+
+| Run | Promptly offline | Delayed offline | All offline by |
+|---|---:|---:|---:|
+| Follow-up 1 | 4 | 2 | approximately 29 s |
+| Follow-up 2 | 5 | 1 | approximately 30 s |
+
+In each delayed case, the server logged `TCP socket closed` immediately and `Logged out` about 30 seconds later; the other sessions logged `Logged out` before socket closure. Including the preceding run, **4 of 18 sessions** lingered across three runs. These are small, non-independent samples, not an estimated failure rate.
+
+The pinned logout script calls `p_finduid(uid)` before `p_logout`; it can also return early in particular game areas. None of this establishes why these requests did not produce prompt logout: neither the worker's button write nor server-side handling was observed directly. A race or server-side refusal remains a hypothesis, not a verified cause. A killed parent also leaves the state file stale, so it must not be treated as live status without a liveness check. No server source or configuration was changed.
 
 ## What this shows
 
