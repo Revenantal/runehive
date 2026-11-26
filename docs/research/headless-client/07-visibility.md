@@ -2,7 +2,7 @@
 
 [Headless client experiments](README.md) · [Discovery plan](../../plans/headless-client-discovery.md)
 
-**Status: explained.** The two groups were in two different game worlds. The cause was the setup, not the client or the server.
+**Status: explained and verified.** The two groups were in two different game worlds. The cause was the setup, not the client or the server.
 
 ## Question
 
@@ -46,6 +46,10 @@ These were not the cause; each was tested before the cause was found.
 - The engine builds each viewer's list from a shared zone map, with no per-connection branch that was found.
 - A viewer is not sent the appearance of a character whose appearance version is still 0. Whether that affects how a browser draws a headless client that skipped the design was not tested. It is a separate question from the one above.
 
+## Verification
+
+After the sandbox server was stopped, a client started in the sandbox connected to the owner's server. It received slot 2 and was told about one player at slot 1, at offset (-1, 1). The server logged the owner's browser character at x 3093, z 3107 and the client at x 3094, z 3106, which is exactly that offset. The owner saw the client on screen. A fleet of six clients was then run in that one world and all were visible ([08](08-managing-clients.md)).
+
 ## Decision
 
 The owner chose to run one server, theirs. The sandbox server was stopped on 2026-11-26. All clients, whoever starts them, must connect to the owner's server. The rule and a lock that enforces it across machines are recorded in [decision 0008](../../decisions/0008-one-lostcity-server-at-a-time.md).
@@ -54,4 +58,4 @@ The owner chose to run one server, theirs. The sandbox server was stopped on 202
 
 - What a browser receives is known only from the owner's reports.
 - Two servers wrote the same SQLite file for a while. No corruption was observed, but it is unsafe and was not checked.
-- Whether a headless client that never accepts the character design is drawn by a browser is still untested.
+- Whether a client that never accepts the character design is drawn like a normal character was not recorded; the owner confirmed only that the clients were visible.

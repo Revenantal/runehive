@@ -2,6 +2,8 @@
 
 [Headless client experiments](README.md) · [Discovery plan](../../plans/headless-client-discovery.md)
 
+> A six-client fleet in one shared world, the management diagrams and the owner-facing run commands are in [08 · Running and managing several clients](08-managing-clients.md).
+
 ## Question and setup
 
 Can several independent headless clients stay logged in together, and what should run and control them: one process per client, or one manager? Setup matches the [earlier experiments](05-logout.md): the pinned sources, the owner-approved production configuration, the existing local world, and a fresh account per client (checked by a human-only read-only query, not by the clients). All clients ran on one machine, so the server saw one address. Every login reported staff level 0.

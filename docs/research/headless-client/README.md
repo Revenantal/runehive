@@ -4,6 +4,18 @@
 
 These notes describe a disposable prototype, not the production client or agent Discovery Memory. Each experiment separates observations from interpretation and identifies what remains unknown. Follow the vanilla-server and credential boundaries in the discovery plan.
 
+## Findings so far
+
+| Question | Answer | Where |
+|---|---|---|
+| Can an ordinary player log in from outside the browser? | Yes, over raw TCP with the pinned client's checksums and RSA key; production mode gives staff level 0 | [03](03-login.md) |
+| How long does an idle session last? | About 60.6 s; one keepalive per second kept it for the full 75 s | [04](04-session-maintenance.md) |
+| How does a client log out cleanly? | Click interface component 2458; the server closes in about 0.4 s. Dropping the connection leaves the account "online" for 18 to 34.6 s | [05](05-logout.md) |
+| How many clients can run together, and what limits them? | Six tested. Per-device limit is 5 logins per 15 s; per-address 30 per minute; one session per account | [06](06-multiple-clients.md), [08](08-managing-clients.md) |
+| Can clients see each other and browser characters? | Yes, when they are on the same server. Our decoder reads who the server says is in view | [07](07-visibility.md), [08](08-managing-clients.md) |
+| Why did it fail at first? | Two servers ran from the same mounted checkout. Now one server only, enforced by a lock | [07](07-visibility.md), [decision 0008](../../decisions/0008-one-lostcity-server-at-a-time.md) |
+| How are several clients managed? | Tested: independent processes from a shell script. Proposed, not built: a supervisor | [08](08-managing-clients.md) |
+
 ## Commands
 
 From the repository root, with Node.js 24 or newer:
@@ -40,3 +52,4 @@ Run from the repository root so `.runehive/` is Git-ignored. Logs are local diag
 - [05 · Clean logout](05-logout.md) — logout button versus abrupt disconnect
 - [06 · Multiple clients](06-multiple-clients.md) — server limits, isolation, and process-versus-manager comparison
 - [07 · Visibility](07-visibility.md) — why browser characters and our clients did not see each other (two separate servers)
+- [08 · Running and managing several clients](08-managing-clients.md) — the six-client fleet, tested versus proposed management, server rules, and remote access
