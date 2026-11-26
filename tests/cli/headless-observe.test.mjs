@@ -289,3 +289,55 @@ test('rejected, failed and elevated-permission logins stop before observing', as
   assert.equal(elevated.socket.destroyed, true);
   assert.deepEqual(elevated.calls, []);
 });
+
+test('the observer exposes received state and records malformed state packets', async () => {
+  const h = harness({
+    script: [
+      { at: 1000, packet: { name: 'UPDATE_RUNENERGY', payload: Buffer.from([73]) } },
+      { at: 1000, packet: { name: 'UPDATE_STAT', payload: Buffer.from([1, 0, 0, 0, 4, 2]) } },
+      { at: 1000, packet: { name: 'UPDATE_RUNENERGY', payload: Buffer.alloc(0) } },
+    ],
+  });
+  const result = await observeView({ account: 'fixture', durationMs: 2000, ...h });
+  assert.equal(result.state.energy, 73);
+  assert.deepEqual(result.state.skills[1], { experience: 4, currentLevel: 2 });
+  assert.equal(result.stateErrors, 1);
+});
+
+test('a movement request without an observed destination remains unknown', async () => {
+  const h = harness();
+  const result = await observeView({ account: 'fixture', durationMs: 3000, walk: true, ...h });
+  assert.equal(result.movement.outcome, 'unknown');
+  assert.equal(result.movement.arrived, false);
+  assert.equal(result.movement.start, null);
+});
+
+test('a later player update confirming the requested destination reports completion', async () => {
+  const teleport = new BitWriter()
+    .write(1, 1)
+    .write(2, 3)
+    .write(2, 0)
+    .write(7, 54)
+    .write(7, 50)
+    .write(1, 1)
+    .write(1, 0)
+    .write(8, 0)
+    .write(11, 2047);
+  const step = () =>
+    new BitWriter().write(1, 1).write(2, 1).write(3, 1).write(1, 0).write(8, 0).write(11, 2047);
+  const packet = (writer) => ({ opcode: 167, name: 'PLAYER_INFO', payload: writer.toBuffer() });
+  const h = harness({
+    script: [
+      { at: 1000, packet: { name: 'REBUILD_NORMAL', payload: Buffer.from([1, 130, 1, 132]) } },
+      { at: 1000, packet: packet(teleport) },
+      { at: 3000, packet: packet(step()) },
+      { at: 4000, packet: packet(step()) },
+    ],
+  });
+  const result = await observeView({ account: 'fixture', durationMs: 5000, walk: true, ...h });
+  assert.equal(result.movement.outcome, 'completed');
+  assert.ok(result.processing.arrivalDecisionMs >= 0);
+  assert.ok(result.processing.packets > 0);
+  assert.deepEqual(result.movement.start, { level: 0, x: 3094, z: 3106 });
+  assert.deepEqual(result.movement.target, { level: 0, x: 3094, z: 3108 });
+});

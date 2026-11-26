@@ -403,6 +403,13 @@ function runObserveCommand(options, { design = false, walk = false } = {}) {
       );
       console.log(`This client's slot on the server: ${t.ownSlot ?? 'not reported'}.`);
       console.log(
+        `Client state: ${JSON.stringify(t.state)}; state decode errors: ${t.stateErrors}.`,
+      );
+      if (t.movement) {
+        console.log(`Movement: ${JSON.stringify(t.movement)}.`);
+        console.log(`Processing timings (ms): ${JSON.stringify(t.processing)}.`);
+      }
+      console.log(
         `Updates about this client's own character: ${
           Object.entries(t.local)
             .map(([k, v]) => `${k} x${v}`)

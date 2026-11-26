@@ -1,3 +1,4 @@
+import { createInitialState } from './initial-state.mjs';
 import { LOGOUT_BUTTON_COMPONENT } from './logout.mjs';
 import { PLAYER_INFO, parsePlayerInfo } from './packets.mjs';
 
@@ -21,7 +22,10 @@ export const WALK_STEPS = [[0, 2]];
 /** Tallies what the server's player-update packets say about other players near this client. */
 function createTally(now) {
   const startedAt = now();
+  const initial = createInitialState();
   const tally = {
+    state: initial.state,
+    stateErrors: 0,
     packets: 0,
     updates: 0,
     malformed: 0,
@@ -40,10 +44,18 @@ function createTally(now) {
     /** Consumes one decoded packet or a framing failure. */
     onPacket(packet) {
       if (packet.broken) {
+        initial.state.position = null;
         tally.broken = packet.broken;
         return;
       }
       tally.packets++;
+      try {
+        initial.apply(packet);
+      } catch {
+        tally.stateErrors++;
+        if (packet.name === 'PLAYER_INFO' || packet.name === 'REBUILD_NORMAL')
+          initial.state.position = null;
+      }
       tally.names[packet.name] = (tally.names[packet.name] ?? 0) + 1;
       if (packet.name === 'UPDATE_PID' && packet.payload.length >= 2)
         tally.ownSlot = packet.payload.readUInt16BE(0);
@@ -81,7 +93,30 @@ export async function observeView({
   design = false,
   walk = false,
 }) {
-  const { tally, onPacket } = createTally(now);
+  const { tally, onPacket: tallyPacket } = createTally(now);
+  let movement = null;
+  const processing = { packets: 0, totalMs: 0, maxMs: 0, arrivalDecisionMs: null };
+  const onPacket = (packet) => {
+    const processingStarted = performance.now();
+    tallyPacket(packet);
+    const position = tally.state.position;
+    if (
+      movement &&
+      packet.name === 'PLAYER_INFO' &&
+      position &&
+      position.level === movement.target.level &&
+      position.x === movement.target.x &&
+      position.z === movement.target.z
+    ) {
+      movement.arrived = true;
+      if (processing.arrivalDecisionMs === null)
+        processing.arrivalDecisionMs = performance.now() - processingStarted;
+    }
+    const elapsed = performance.now() - processingStarted;
+    processing.packets++;
+    processing.totalMs += elapsed;
+    processing.maxMs = Math.max(processing.maxMs, elapsed);
+  };
   let result;
   try {
     result = await loginFn({ account, onPacket });
@@ -122,6 +157,12 @@ export async function observeView({
     result.sendKeepalive();
     if (walk && !walked && now() - startedAt >= DESIGN_DELAY_MS) {
       walked = true;
+      const start = tally.state.position ? { ...tally.state.position } : null;
+      movement = {
+        start,
+        target: { level: start?.level ?? null, x: START_TILE.x, z: START_TILE.z + 2 },
+        arrived: false,
+      };
       result.sendWalk({ startX: START_TILE.x, startZ: START_TILE.z, steps: WALK_STEPS });
       log.walkRequested();
     }
@@ -153,6 +194,8 @@ export async function observeView({
     elapsedMs: Math.floor(now() - startedAt),
     designed,
     walked,
+    movement: movement && { ...movement, outcome: movement.arrived ? 'completed' : 'unknown' },
+    processing,
     ...tally,
     sightings: [...tally.sightings].map(([pid, v]) => ({ pid, ...v })),
   };

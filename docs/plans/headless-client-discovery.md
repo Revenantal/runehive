@@ -55,7 +55,7 @@ For every action experiment define a success condition before the attempt. Recor
 
 ## Later, outside this plan
 
-- **A client status command.** An owner-facing CLI command, for example `npm run runehive -- clients`, that lists each managed headless client and its state (logged in, logged out, logging in, failed, and so on). It is not in scope for the discovery experiments. The supervisor experiment should keep each client's state in one place that such a command could read, but should not build the command. The owner's request, 2026-11-26.
+- **Client monitoring commands.** An owner-facing CLI command, for example `npm run runehive -- clients`, could list each managed client's lifecycle state. A separate command could monitor a selected client in near real time, including its observed position, energy, skills and client processing performance (such as packet decoding and action-outcome recognition latency). Performance measurements should state their scope and distinguish client processing from network, scheduling and game time. Both are future work, not in scope for discovery. They must distinguish fresh observations from stale or unknown state and avoid treating server diagnostics as client observations. The supervisor experiment keeps lifecycle state in one place but does not implement monitoring.
 
 ## Implementation
 
