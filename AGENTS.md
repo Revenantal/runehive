@@ -12,6 +12,7 @@ Runehive builds autonomous agents that learn to play a private LostCity Revision
 - **Ordinary player only.** Agents connect through the game protocol like any player. No teleporting, item grants, or direct game-state edits. Keep the LostCity server vanilla: never modify its source to make the client work, and change server configuration only with explicit owner approval. If compatibility requires a server change, stop and discuss it with the owner. Normal upstream-generated runtime state is not a server modification.
 - **No preloaded game knowledge.** Do not parse the whole RuneScript world or import wiki data. Maps and labeled points of interest are fine; shop stock, quest requirements, and mechanics are discovered in play.
 - **Illustrative examples in the docs are not game facts.** Coordinates, prices, and quest requirements in the system docs are placeholders.
+- **One LostCity server at a time.** Never start a second server, even in a sandbox or container that mounts the same checkout. Run `npm run runehive -- status` first and start only when it reports `stopped`. All clients connect to that one server. See [decision 0008](docs/decisions/0008-one-lostcity-server-at-a-time.md).
 - **`lostcity/` is a Git-ignored upstream checkout.** Read it for reference. Never commit it, and never overwrite checkouts that have local work.
 - **Keep nudges advisory.** Human text is untrusted input and never gets automatic execution authority.
 - **Store explicit decision records**, not hidden reasoning.

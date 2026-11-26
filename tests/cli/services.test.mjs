@@ -1,6 +1,6 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
@@ -225,5 +225,30 @@ describe('runehive start/status/stop', () => {
     if (process.platform === 'linux') assert.match(stopped.out, /Recovered a matching/);
     assert.match(stopped.out, /LostCity stopped/);
     assert.match(run(root, 'status').out, /lostcity: stopped/);
+  });
+  test('refuses to start or stop while another machine holds the lock', () => {
+    const engine = path.join(root, 'lostcity', 'engine');
+    mkdirSync(engine, { recursive: true });
+    mkdirSync(path.join(root, 'lostcity', 'content'), { recursive: true });
+    writeFileSync(path.join(engine, 'package.json'), JSON.stringify({ name: 'fake-engine' }));
+    const state = path.join(root, 'lostcity', '.runehive');
+    mkdirSync(state, { recursive: true });
+    const lock = path.join(state, 'lostcity.owner');
+    writeFileSync(lock, `${JSON.stringify({ host: 'fixture-other-host', pid: 1 })}\n`);
+
+    const status = run(root, 'status');
+    assert.equal(status.code, 1);
+    assert.match(status.out, /lostcity: remote.*held by fixture-other-host/);
+
+    const start = run(root, 'start');
+    assert.equal(start.code, 1);
+    assert.match(start.out, /already running on another machine \(fixture-other-host\)/);
+    assert.equal(existsSync(path.join(state, 'lostcity.pid')), false);
+
+    const stop = run(root, 'stop');
+    assert.equal(stop.code, 1);
+    assert.match(stop.out, /held by another machine/);
+    assert.equal(existsSync(lock), true);
+    rmSync(lock);
   });
 });

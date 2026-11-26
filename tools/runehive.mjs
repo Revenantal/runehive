@@ -272,7 +272,9 @@ const SERVICES = {
     /** Prints the LostCity world's state. */
     status: (ctx) => {
       const s = lostcityService.status(ctx);
-      ctx.log(`lostcity: ${s.state}${s.url ? `  ${s.url}` : ''}${s.pid ? `  (pid ${s.pid})` : ''}`);
+      ctx.log(
+        `lostcity: ${s.state}${s.url ? `  ${s.url}` : ''}${s.host ? `  (held by ${s.host})` : ''}${s.pid && !s.host ? `  (pid ${s.pid})` : ''}`,
+      );
       return Promise.resolve(['ready', 'running'].includes(s.state) ? 0 : 1);
     },
     /** Stops the local LostCity world. */

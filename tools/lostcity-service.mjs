@@ -12,6 +12,7 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
+import { hostname } from 'node:os';
 import path from 'node:path';
 
 const READY_PATTERN = /World ready: Visit (\S+)/;
@@ -24,6 +25,42 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** Names this machine. Tests and unusual setups may override it. */
+function thisHost() {
+  return process.env.RUNEHIVE_HOST_ID || hostname();
+}
+
+/** Reads the single-instance lock, which lives next to the PID file and names the owning host. */
+function readOwner(p) {
+  try {
+    const owner = JSON.parse(readFileSync(p.ownerFile, 'utf8'));
+    return typeof owner?.host === 'string' && owner.host ? owner : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Returns the lock when another machine holds it, else null. */
+function foreignOwner(p) {
+  const owner = readOwner(p);
+  return owner && owner.host !== thisHost() ? owner : null;
+}
+
+/** Creates the lock exclusively, so two machines cannot both claim it. Returns the holder on failure. */
+function claimOwner(p, pid) {
+  const body = `${JSON.stringify({ host: thisHost(), pid })}\n`;
+  try {
+    writeFileSync(p.ownerFile, body, { flag: 'wx' });
+    return null;
+  } catch (error) {
+    if (error.code !== 'EEXIST') throw error;
+  }
+  const holder = readOwner(p);
+  if (holder && holder.host !== thisHost()) return holder;
+  writeFileSync(p.ownerFile, body); // a stale lock from this same machine
+  return null;
+}
+
 /** Returns the engine directory and the Git-ignored state files for this root. */
 export function servicePaths(root, destination = 'lostcity') {
   const base = path.resolve(root, destination);
@@ -33,6 +70,7 @@ export function servicePaths(root, destination = 'lostcity') {
     contentDir: path.join(base, 'content'),
     stateDir,
     pidFile: path.join(stateDir, 'lostcity.pid'),
+    ownerFile: path.join(stateDir, 'lostcity.owner'),
     logFile: path.join(stateDir, 'lostcity.log'),
   };
 }
@@ -146,6 +184,12 @@ function readyUrl(logFile) {
 export function status({ root, destination }) {
   const p = servicePaths(root, destination);
   const service = resolveService(p);
+  const foreign = foreignOwner(p);
+  if (foreign) {
+    return service.state === 'stopped'
+      ? { state: 'remote', host: foreign.host, pid: foreign.pid, logFile: p.logFile }
+      : { state: 'conflict', host: foreign.host, pid: service.pid, logFile: p.logFile };
+  }
   if (service.state === 'stopped') return { state: 'stopped', logFile: p.logFile };
   if (service.state === 'ambiguous') return { state: 'ambiguous', logFile: p.logFile };
   if (service.state === 'unmanaged')
@@ -230,6 +274,12 @@ export async function start({
     return 1;
   }
   const current = status({ root, destination });
+  if (current.state === 'remote' || current.state === 'conflict') {
+    log(
+      `LostCity is already running on another machine (${current.host}). Only one server may run at a time. Stop it there first; nothing was started.`,
+    );
+    return 1;
+  }
   if (current.state !== 'stopped') {
     log(`LostCity is already ${current.state} (pid ${current.pid}).`);
     if (current.url) log(`Open ${current.url}`);
@@ -244,6 +294,13 @@ export async function start({
   }
 
   mkdirSync(p.stateDir, { recursive: true });
+  const holder = claimOwner(p, process.pid);
+  if (holder) {
+    log(
+      `LostCity is already running on another machine (${holder.host}). Only one server may run at a time. Stop it there first; nothing was started.`,
+    );
+    return 1;
+  }
   rmSync(p.logFile, { force: true });
   const out = openSync(p.logFile, 'a');
   // Detached so it gets its own process group, letting stop signal npm and the engine together.
@@ -256,6 +313,7 @@ export async function start({
   child.unref();
   const spawnError = new Promise((resolve) => child.once('error', resolve));
   if (!child.pid) {
+    rmSync(p.ownerFile, { force: true });
     log(`Could not start npm: ${(await spawnError).message}`);
     return 1;
   }
@@ -278,6 +336,7 @@ export async function start({
     }
     if (!isAlive(child.pid)) {
       rmSync(p.pidFile, { force: true });
+      rmSync(p.ownerFile, { force: true });
       log(`LostCity exited before it was ready. See ${p.logFile}`);
       return 1;
     }
@@ -291,6 +350,13 @@ export async function start({
 export async function stop({ root, destination, log = console.log, timeoutMs = STOP_TIMEOUT_MS }) {
   const p = servicePaths(root, destination);
   const service = resolveService(p);
+  const foreign = foreignOwner(p);
+  if (foreign) {
+    log(
+      `LostCity is held by another machine (${foreign.host}). Run stop on that machine. No process was signaled.`,
+    );
+    return 1;
+  }
   if (service.state === 'ambiguous') {
     log(
       'Multiple matching LostCity process groups found; inspect them manually. No process was signaled.',
@@ -303,6 +369,7 @@ export async function stop({ root, destination, log = console.log, timeoutMs = S
   }
   if (service.state === 'stopped') {
     rmSync(p.pidFile, { force: true });
+    rmSync(p.ownerFile, { force: true });
     log('LostCity is not running (no matching process found).');
     return 0;
   }
@@ -319,6 +386,7 @@ export async function stop({ root, destination, log = console.log, timeoutMs = S
   while (Date.now() < deadline) {
     if (!groupAlive(pid)) {
       rmSync(p.pidFile, { force: true });
+      rmSync(p.ownerFile, { force: true });
       log('LostCity stopped.');
       return 0;
     }

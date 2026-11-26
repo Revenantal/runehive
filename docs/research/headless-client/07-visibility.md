@@ -14,7 +14,7 @@ To measure what the server sends, the prototype frames the server's packet strea
 
 ## Cause
 
-Two LostCity servers were running, one in the agent's sandbox and one on the owner's host (`devserver`), and each had its own slots and players. Clients started in the sandbox connected to the sandbox server. The owner's browser and the clients started from the owner's shell connected to the owner's server. The two servers appear to share one database file, which is why accounts from both showed up in the same queries. That sharing was not verified.
+Two LostCity servers were running, one in the agent's sandbox and one on the owner's host (`devserver`), and each had its own slots and players. Clients started in the sandbox connected to the sandbox server. The owner's browser and the clients started from the owner's shell connected to the owner's server. The agent's sandbox mounts the owner's checkout, so both servers ran from the same directory and used the same SQLite file. That is why accounts from both showed up in the same queries. The service manager could not tell, because it decided from a PID file and process scan, which only work on one machine.
 
 The control test that showed it, with the owner's server and the sandbox server both running:
 
@@ -48,10 +48,10 @@ These were not the cause; each was tested before the cause was found.
 
 ## Decision
 
-The owner chose to run one server, theirs. The sandbox server was stopped on 2026-11-26. All clients, whoever starts them, must connect to the owner's server. Before any later test, check that exactly one process holds port 43594 where the clients run.
+The owner chose to run one server, theirs. The sandbox server was stopped on 2026-11-26. All clients, whoever starts them, must connect to the owner's server. The rule and a lock that enforces it across machines are recorded in [decision 0008](../../decisions/0008-one-lostcity-server-at-a-time.md).
 
 ## Limitations
 
 - What a browser receives is known only from the owner's reports.
-- Whether the two servers really share the database file was not verified, and two servers writing one SQLite file is unsafe.
+- Two servers wrote the same SQLite file for a while. No corruption was observed, but it is unsafe and was not checked.
 - Whether a headless client that never accepts the character design is drawn by a browser is still untested.
