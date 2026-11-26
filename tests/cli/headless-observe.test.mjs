@@ -336,8 +336,28 @@ test('a later player update confirming the requested destination reports complet
   });
   const result = await observeView({ account: 'fixture', durationMs: 5000, walk: true, ...h });
   assert.equal(result.movement.outcome, 'completed');
+  assert.deepEqual(result.movement.trace, [
+    { elapsedMs: 1000, level: 0, x: 3094, z: 3107 },
+    { elapsedMs: 2000, level: 0, x: 3094, z: 3108 },
+  ]);
+  assert.equal(result.movement.traceTruncated, false);
   assert.ok(result.processing.arrivalDecisionMs >= 0);
   assert.ok(result.processing.packets > 0);
   assert.deepEqual(result.movement.start, { level: 0, x: 3094, z: 3106 });
   assert.deepEqual(result.movement.target, { level: 0, x: 3094, z: 3108 });
+});
+
+test('the experimental observer records a supplied direct waypoint without claiming blockage', async () => {
+  const h = harness();
+  const result = await observeView({
+    account: 'fixture',
+    durationMs: 3000,
+    walk: true,
+    walkSteps: [[2, 6]],
+    ...h,
+  });
+  assert.ok(h.calls.some((call) => call.includes('[[2,6]]')));
+  assert.equal(result.movement.target.x, 3096);
+  assert.equal(result.movement.target.z, 3112);
+  assert.equal(result.movement.outcome, 'unknown');
 });

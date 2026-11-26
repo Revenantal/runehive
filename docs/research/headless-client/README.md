@@ -57,4 +57,5 @@ Run from the repository root so `.runehive/` is Git-ignored. Logs are local diag
 - [08 · Running and managing several clients](08-managing-clients.md) — the six-client fleet, tested versus proposed management, server rules, and remote access
 - [09 · Supervisor experiment](09-supervisor.md) — one process admitting, tracking and logging out six clients
 - [10 · Child processes](10-child-processes.md) — one worker process per client, distinct device ids, kill, stall and parent-crash cases
-- [11 · Initial state discovery](11-initial-state.md) — protocol research and one live stationary-state observation
+- [11 · Initial state discovery](11-initial-state.md) — protocol research and live position and movement observations
+- [12 · Routefinding](12-routefinding.md) — browser collision data and a bounded turn-waypoint comparison

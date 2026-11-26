@@ -92,14 +92,30 @@ export async function observeView({
   durationMs = 30_000,
   design = false,
   walk = false,
+  walkSteps = WALK_STEPS,
 }) {
   const { tally, onPacket: tallyPacket } = createTally(now);
   let movement = null;
   const processing = { packets: 0, totalMs: 0, maxMs: 0, arrivalDecisionMs: null };
   const onPacket = (packet) => {
     const processingStarted = performance.now();
+    const previous = tally.state.position ? { ...tally.state.position } : null;
     tallyPacket(packet);
     const position = tally.state.position;
+    if (
+      movement &&
+      packet.name === 'PLAYER_INFO' &&
+      position &&
+      previous &&
+      (position.x !== previous.x || position.z !== previous.z || position.level !== previous.level)
+    ) {
+      if (movement.trace.length < 128)
+        movement.trace.push({
+          elapsedMs: Math.max(0, Math.floor(now() - movement.requestedAt)),
+          ...position,
+        });
+      else movement.traceTruncated = true;
+    }
     if (
       movement &&
       packet.name === 'PLAYER_INFO' &&
@@ -160,10 +176,17 @@ export async function observeView({
       const start = tally.state.position ? { ...tally.state.position } : null;
       movement = {
         start,
-        target: { level: start?.level ?? null, x: START_TILE.x, z: START_TILE.z + 2 },
+        target: {
+          level: start?.level ?? null,
+          x: START_TILE.x + walkSteps.at(-1)[0],
+          z: START_TILE.z + walkSteps.at(-1)[1],
+        },
         arrived: false,
+        requestedAt: now(),
+        trace: [],
+        traceTruncated: false,
       };
-      result.sendWalk({ startX: START_TILE.x, startZ: START_TILE.z, steps: WALK_STEPS });
+      result.sendWalk({ startX: START_TILE.x, startZ: START_TILE.z, steps: walkSteps });
       log.walkRequested();
     }
     if (design && !designed && now() - startedAt >= DESIGN_DELAY_MS) {
@@ -194,7 +217,14 @@ export async function observeView({
     elapsedMs: Math.floor(now() - startedAt),
     designed,
     walked,
-    movement: movement && { ...movement, outcome: movement.arrived ? 'completed' : 'unknown' },
+    movement: movement && {
+      start: movement.start,
+      target: movement.target,
+      arrived: movement.arrived,
+      trace: movement.trace,
+      traceTruncated: movement.traceTruncated,
+      outcome: movement.arrived ? 'completed' : 'unknown',
+    },
     processing,
     ...tally,
     sightings: [...tally.sightings].map(([pid, v]) => ({ pid, ...v })),
