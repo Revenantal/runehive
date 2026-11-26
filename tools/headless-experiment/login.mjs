@@ -98,6 +98,7 @@ export async function login({
   host = '127.0.0.1',
   port = 43594,
   webPort = 8888,
+  crcs: knownCrcs = null,
   fetcher = fetch,
   connect = net.createConnection,
   random = randomBytes,
@@ -114,16 +115,19 @@ export async function login({
     throw new Error('INVALID_CREDENTIAL_FORMAT');
   if (!Number.isInteger(deviceId) || deviceId < 0 || deviceId > 0x7fffffff)
     throw new Error('INVALID_DEVICE_ID');
-  let response;
-  try {
-    response = await fetcher(`http://${host}:${webPort}/crc`, {
-      signal: AbortSignal.timeout(10_000),
-    });
-  } catch {
-    throw new Error('CACHE_UNAVAILABLE');
+  let crcs = knownCrcs;
+  if (crcs === null) {
+    let response;
+    try {
+      response = await fetcher(`http://${host}:${webPort}/crc`, {
+        signal: AbortSignal.timeout(10_000),
+      });
+    } catch {
+      throw new Error('CACHE_UNAVAILABLE');
+    }
+    if (!response.ok) throw new Error('CACHE_UNAVAILABLE');
+    crcs = Buffer.from(await response.arrayBuffer());
   }
-  if (!response.ok) throw new Error('CACHE_UNAVAILABLE');
-  const crcs = Buffer.from(await response.arrayBuffer());
   if (crcs.length !== 40) throw new Error('INVALID_CACHE_RESPONSE');
   const socket = connect({ host, port });
   socket.setTimeout(15_000);

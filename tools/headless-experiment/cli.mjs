@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readFileSync } from 'node:fs';
 import { createInterface } from 'node:readline/promises';
 import { createExperimentLog } from './log.mjs';
 import { login } from './login.mjs';
@@ -34,6 +35,8 @@ function readOptions() {
   const rawDevice = process.env.RUNEHIVE_EXPERIMENT_DEVICE_ID;
   const deviceId = rawDevice === undefined ? undefined : Number(rawDevice);
   const transport = process.env.RUNEHIVE_EXPERIMENT_TRANSPORT ?? 'tcp';
+  const host = process.env.RUNEHIVE_EXPERIMENT_HOST ?? '127.0.0.1';
+  const crcFile = process.env.RUNEHIVE_EXPERIMENT_CRC_FILE;
   const rawSeconds = process.env.RUNEHIVE_EXPERIMENT_SECONDS;
   const seconds = rawSeconds === undefined ? 30 : Number(rawSeconds);
   const validSeconds =
@@ -44,14 +47,16 @@ function readOptions() {
     !/^client-\d{2,3}$/.test(clientId) ||
     !validDevice ||
     !validSeconds ||
+    !/^[A-Za-z0-9.-]{1,253}$/.test(host) ||
+    (crcFile !== undefined && !crcFile) ||
     !['tcp', 'websocket'].includes(transport)
   ) {
     console.error(
-      'RUNEHIVE_EXPERIMENT_CLIENT_ID must look like client-02, and RUNEHIVE_EXPERIMENT_DEVICE_ID must be a non-negative integer, and RUNEHIVE_EXPERIMENT_TRANSPORT must be tcp or websocket, and RUNEHIVE_EXPERIMENT_SECONDS must be 5 to 1800.',
+      'RUNEHIVE_EXPERIMENT_CLIENT_ID must look like client-02, and RUNEHIVE_EXPERIMENT_DEVICE_ID must be a non-negative integer, and RUNEHIVE_EXPERIMENT_TRANSPORT must be tcp or websocket, and RUNEHIVE_EXPERIMENT_SECONDS must be 5 to 1800, and RUNEHIVE_EXPERIMENT_HOST must be a host name or address, and RUNEHIVE_EXPERIMENT_CRC_FILE must not be empty.',
     );
     return null;
   }
-  return { clientId, deviceId, transport, seconds };
+  return { clientId, deviceId, transport, seconds, host, crcFile };
 }
 
 /** Keeps the placeholder process available until an operator stops it. */
@@ -103,8 +108,12 @@ function loginFor(options) {
   return (args) =>
     login({
       ...args,
+      host: options.host,
       deviceId: options.deviceId,
-      ...(options.transport === 'websocket' ? { connect: () => connectWebSocket() } : {}),
+      ...(options.crcFile ? { crcs: readFileSync(options.crcFile) } : {}),
+      ...(options.transport === 'websocket'
+        ? { connect: () => connectWebSocket({ host: options.host }) }
+        : {}),
     });
 }
 

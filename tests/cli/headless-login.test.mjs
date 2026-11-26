@@ -170,3 +170,34 @@ test('login cleans up a socket that closes during the handshake', async () => {
   await assert.rejects(login({ account, fetcher, connect: () => socket }), /TRANSPORT_FAILURE/);
   assert.equal(socket.destroyed, true);
 });
+
+test('login uses supplied checksums and a custom host without fetching over HTTP', async () => {
+  const socket = new FakeSocket([2, 0, 1]);
+  let connectedTo = null;
+  const result = await login({
+    account,
+    host: 'fixture-host',
+    crcs: Buffer.alloc(40, 7),
+    fetcher: async () => {
+      throw new Error('must not fetch');
+    },
+    connect: (target) => {
+      connectedTo = target;
+      return socket;
+    },
+    random: () => Buffer.alloc(8),
+  });
+  assert.equal(result.kind, 'accepted');
+  assert.equal(connectedTo.host, 'fixture-host');
+  assert.equal(
+    socket.writes[1].subarray(6, 42).every((b) => b === 7),
+    true,
+  );
+});
+
+test('login rejects supplied checksums of the wrong size', async () => {
+  await assert.rejects(
+    login({ account, crcs: Buffer.alloc(39), connect: () => new FakeSocket([2, 0, 1]) }),
+    /INVALID_CACHE_RESPONSE/,
+  );
+});

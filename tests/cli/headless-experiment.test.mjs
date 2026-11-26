@@ -85,6 +85,9 @@ test('invalid experiment settings are rejected without echoing them', () => {
     ['RUNEHIVE_EXPERIMENT_SECONDS', '4'],
     ['RUNEHIVE_EXPERIMENT_SECONDS', '1801'],
     ['RUNEHIVE_EXPERIMENT_SECONDS', ''],
+    ['RUNEHIVE_EXPERIMENT_HOST', 'fixture bad host!'],
+    ['RUNEHIVE_EXPERIMENT_HOST', ''],
+    ['RUNEHIVE_EXPERIMENT_CRC_FILE', ''],
   ]) {
     const result = spawnSync(process.execPath, [cli, 'login'], {
       encoding: 'utf8',
