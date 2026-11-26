@@ -5,6 +5,8 @@ import { createExperimentLog } from './log.mjs';
 import { login } from './login.mjs';
 import { runLogoutExperiment } from './logout.mjs';
 import { observeView } from './observe.mjs';
+import { runSupervisor } from './supervisor.mjs';
+import path from 'node:path';
 import { connectWebSocket } from './transport.mjs';
 import { observeSession } from './session.mjs';
 
@@ -20,11 +22,16 @@ Usage:
   node tools/headless-experiment/cli.mjs observe  Report which other players the server says are in view
   node tools/headless-experiment/cli.mjs observe-designed  Same, after accepting the default character design
   node tools/headless-experiment/cli.mjs observe-walking  Same, after walking two tiles north
+  node tools/headless-experiment/cli.mjs supervise  One process logs in several clients, tracks their state, and logs them out
   node tools/headless-experiment/cli.mjs --help  Show this help
 
 Optional environment: RUNEHIVE_EXPERIMENT_TRANSPORT (tcp, the default, or websocket as the browser
 connects), RUNEHIVE_EXPERIMENT_CLIENT_ID (client-02 style label for the log) and
 RUNEHIVE_EXPERIMENT_DEVICE_ID (experiment-only login device id; defaults to the browser client's).
+Supervise also reads RUNEHIVE_EXPERIMENT_ACCOUNT_PREFIX (1 to 10 printable characters; accounts are the prefix plus 1, 2, ...),
+RUNEHIVE_EXPERIMENT_CLIENTS (2 to 10, default 6), RUNEHIVE_EXPERIMENT_PACE_SECONDS (1 to 60, default 4) and
+RUNEHIVE_EXPERIMENT_FAIL_CLIENT (optional client number to drop on purpose). Its state is written to
+.runehive/headless-experiment/clients.json.
 Each run writes a private JSONL log under .runehive/headless-experiment/ in the current directory.
 Stop a running experiment with Ctrl-C (SIGINT) or SIGTERM.
 `;
@@ -412,6 +419,120 @@ function runObserveCommand(options, { design = false, walk = false } = {}) {
   });
 }
 
+/** Reads the extra settings of the supervisor experiment, or returns null after reporting a problem. */
+function readSuperviseOptions(options) {
+  const count = Number(process.env.RUNEHIVE_EXPERIMENT_CLIENTS ?? '6');
+  const pace = Number(process.env.RUNEHIVE_EXPERIMENT_PACE_SECONDS ?? '4');
+  const rawFail = process.env.RUNEHIVE_EXPERIMENT_FAIL_CLIENT;
+  const fail = rawFail === undefined ? null : Number(rawFail);
+  const valid =
+    Number.isInteger(count) &&
+    count >= 2 &&
+    count <= 10 &&
+    Number.isInteger(pace) &&
+    pace >= 1 &&
+    pace <= 60 &&
+    (fail === null || (/^\d{1,2}$/.test(rawFail) && fail >= 1 && fail <= count)) &&
+    process.env.RUNEHIVE_EXPERIMENT_CLIENTS !== '' &&
+    process.env.RUNEHIVE_EXPERIMENT_PACE_SECONDS !== '';
+  if (!valid) {
+    console.error(
+      'RUNEHIVE_EXPERIMENT_CLIENTS must be 2 to 10, RUNEHIVE_EXPERIMENT_PACE_SECONDS 1 to 60, and RUNEHIVE_EXPERIMENT_FAIL_CLIENT a client number within range.',
+    );
+    return null;
+  }
+  return { ...options, count, paceMs: pace * 1000, failNumber: fail };
+}
+
+/** One process logs in several clients, tracks them in one state file, and logs them out. */
+async function runSuperviseCommand(options) {
+  const settings = readSuperviseOptions(options);
+  if (!settings) {
+    process.exitCode = 2;
+    return;
+  }
+  let prefix;
+  try {
+    prefix = process.env.RUNEHIVE_EXPERIMENT_ACCOUNT_PREFIX ?? (await promptAccount());
+  } catch {
+    console.error('Could not read the account prefix.');
+    process.exitCode = 1;
+    return;
+  }
+  if (!prefix || !/^[\x20-\x7e]{1,10}$/.test(prefix)) {
+    console.error('Enter a printable account prefix of 1 to 10 characters.');
+    process.exitCode = 2;
+    return;
+  }
+  const accounts = Array.from({ length: settings.count }, (_, i) => `${prefix}${i + 1}`);
+  let log;
+  try {
+    log = createExperimentLog(process.cwd(), { clientId: settings.clientId });
+    log.started();
+  } catch {
+    console.error('Could not create or write the experiment log; no experiment was started.');
+    process.exitCode = 1;
+    return;
+  }
+  const controller = new AbortController();
+  const onSignal = () => controller.abort();
+  process.once('SIGINT', onSignal);
+  process.once('SIGTERM', onSignal);
+  const sleep = (ms, cancel) =>
+    new Promise((resolve) => {
+      const finish = () => {
+        clearTimeout(timer);
+        controller.signal.removeEventListener('abort', finish);
+        cancel?.removeEventListener('abort', finish);
+        resolve();
+      };
+      const timer = setTimeout(finish, ms);
+      controller.signal.addEventListener('abort', finish, { once: true });
+      cancel?.addEventListener('abort', finish, { once: true });
+    });
+  console.log(
+    `Supervisor: ${settings.count} clients, ${settings.paceMs / 1000} s apart, one shared device id, held ${settings.seconds} s${settings.failNumber ? `, dropping client ${settings.failNumber} on purpose` : ''}. Run ID: ${log.runId}.`,
+  );
+  let summary;
+  try {
+    summary = await runSupervisor({
+      accounts,
+      loginFn: loginFor(settings),
+      log,
+      sleep,
+      now: () => performance.now(),
+      signal: controller.signal,
+      stateFile: path.join(process.cwd(), '.runehive', 'headless-experiment', 'clients.json'),
+      paceMs: settings.paceMs,
+      holdMs: settings.seconds * 1000,
+      failNumber: settings.failNumber,
+    });
+  } catch {
+    console.error('Supervisor experiment failed; see the state file for each client.');
+    process.exitCode = 1;
+    return;
+  } finally {
+    process.removeListener('SIGINT', onSignal);
+    process.removeListener('SIGTERM', onSignal);
+    log.close();
+  }
+  for (const c of summary.clients)
+    console.log(
+      `  ${c.label}: ${c.state}${c.slot === null ? '' : `, slot ${c.slot}`}${c.code === null ? '' : `, protocol code ${c.code}`}`,
+    );
+  if (summary.injected)
+    console.log(`Dropped ${summary.injected.label} on purpose at ${summary.injected.atMs} ms.`);
+  console.log(
+    `Admitted ${summary.admitted} of ${settings.count}; still in game before logout: ${summary.survivorsBeforeLogout}; finished in ${summary.elapsedMs} ms.`,
+  );
+  const expectedOut = settings.count - (summary.injected ? 1 : 0);
+  const ok =
+    summary.admitted === settings.count &&
+    summary.clients.filter((c) => c.state === 'logged-out').length === expectedOut &&
+    summary.clients.filter((c) => c.state === 'dropped').length === (summary.injected ? 1 : 0);
+  if (!ok) process.exitCode = 1;
+}
+
 /** Validates the small command surface and starts the requested experiment. */
 function main(args) {
   if (args.length === 1 && (args[0] === '--help' || args[0] === '-h')) {
@@ -428,6 +549,7 @@ function main(args) {
     'observe',
     'observe-designed',
     'observe-walking',
+    'supervise',
   ];
   const options = args.length === 1 && known.includes(args[0]) ? readOptions() : undefined;
   if (options === null) {
@@ -445,13 +567,17 @@ function main(args) {
     });
     return;
   }
+  if (args.length === 1 && args[0] === 'supervise') {
+    void runSuperviseCommand(options);
+    return;
+  }
   if (args.length === 1 && ['logout', 'logout-abrupt'].includes(args[0])) {
     void runLogoutCommand(args[0] === 'logout' ? 'clean' : 'abrupt', options);
     return;
   }
   if (args.length !== 1 || args[0] !== 'run') {
     console.error(
-      'Expected "run", "login", "session", "session-idle", "logout", "logout-abrupt", "observe", "observe-designed", "observe-walking", or "--help". No experiment was started.',
+      'Expected "run", "login", "session", "session-idle", "logout", "logout-abrupt", "observe", "observe-designed", "observe-walking", "supervise", or "--help". No experiment was started.',
     );
     process.exitCode = 2;
     return;

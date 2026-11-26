@@ -122,6 +122,24 @@ export function createExperimentLog(root, { clientId = 'client-01' } = {}) {
         throw new Error('Invalid relogin observation');
       record('relogin.attempted', { attempt, outcome, code, elapsedMs });
     },
+    /** Records a supervised client's state change; labels only, never account names. */
+    clientState(label, state) {
+      if (
+        !/^client-\d{2,3}$/.test(label) ||
+        ![
+          'queued',
+          'logging-in',
+          'in-game',
+          'dropped',
+          'logging-out',
+          'logged-out',
+          'rejected',
+          'failed',
+        ].includes(state)
+      )
+        throw new Error('Invalid client state');
+      record('client.state', { label, state });
+    },
     /** Releases the log file once. */
     close() {
       if (!closed) {

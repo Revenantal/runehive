@@ -11,10 +11,10 @@ These notes describe a disposable prototype, not the production client or agent 
 | Can an ordinary player log in from outside the browser? | Yes, over raw TCP with the pinned client's checksums and RSA key; production mode gives staff level 0 | [03](03-login.md) |
 | How long does an idle session last? | About 60.6 s; one keepalive per second kept it for the full 75 s | [04](04-session-maintenance.md) |
 | How does a client log out cleanly? | Click interface component 2458; the server closes in about 0.4 s. Dropping the connection leaves the account "online" for 18 to 34.6 s | [05](05-logout.md) |
-| How many clients can run together, and what limits them? | Six tested. Per-device limit is 5 logins per 15 s; per-address 30 per minute; one session per account | [06](06-multiple-clients.md), [08](08-managing-clients.md) |
+| How many clients can run together, and what limits them? | Six tested. Per-device limit refuses the fifth attempt until 15 s pass with no attempts; per-address 30 per minute; one session per account | [06](06-multiple-clients.md), [08](08-managing-clients.md) |
 | Can clients see each other and browser characters? | Yes, when they are on the same server. Our decoder reads who the server says is in view | [07](07-visibility.md), [08](08-managing-clients.md) |
 | Why did it fail at first? | Two servers ran from the same mounted checkout. Now one server only, enforced by a lock | [07](07-visibility.md), [decision 0008](../../decisions/0008-one-lostcity-server-at-a-time.md) |
-| How are several clients managed? | Tested: independent processes from a shell script. Proposed, not built: a supervisor | [08](08-managing-clients.md) |
+| How are several clients managed? | Tested: independent processes from a shell script, and a throwaway one-process supervisor with six in-process clients. A production design is not chosen | [08](08-managing-clients.md), [09](09-supervisor.md) |
 
 ## Commands
 
@@ -31,6 +31,7 @@ npm run experiment:headless -- logout-abrupt # drop the connection (control), th
 npm run experiment:headless -- observe       # report which players the server says are in view
 npm run experiment:headless -- observe-designed  # same, after accepting the default character design
 npm run experiment:headless -- observe-walking   # same, after walking two tiles north
+npm run experiment:headless -- supervise     # one process logs in several clients, tracks state, logs them out
 ```
 
 `run` starts a foreground placeholder. `login` prompts for the account with visible input, uses the same value as its password, connects to the local world, and reports the client-visible login result. Because the name is also the password, anyone who sees the prompt can see the credential; use disposable local accounts only. For automation, `RUNEHIVE_EXPERIMENT_ACCOUNT` can supply the value instead of prompting. Choose a fresh account manually; the naming convention in the plan is recommended but not enforced. Automatic allocation and verification of freshness are not implemented. The prototype accepts printable ASCII names of 1–12 characters; the server may apply further normalization or restrictions. The account name is a password, so do not put its value in documentation, logs, shell history, or a shared terminal. Each run writes a separate JSON Lines file under `.runehive/headless-experiment/` in the current directory, named by the non-secret run ID shown at startup. To stop it from another terminal, send SIGTERM to the Node process running `tools/headless-experiment/cli.mjs`; don't signal an unrelated process. For scripting without npm's wrapper, use `node tools/headless-experiment/cli.mjs run`. Invalid arguments return exit code 2 without echoing the argument. The Node process exits with code 0 on SIGINT or SIGTERM after cleanup; when launched through npm, the wrapper may itself report signal termination. Stopping `login` closes the connection; it does not request a clean game logout. Incoming post-login game packets are counted but not decoded. The separate session experiments compare bounded operation with and without keepalives; the basic `login` command does not send them.
@@ -53,3 +54,4 @@ Run from the repository root so `.runehive/` is Git-ignored. Logs are local diag
 - [06 · Multiple clients](06-multiple-clients.md) — server limits, isolation, and process-versus-manager comparison
 - [07 · Visibility](07-visibility.md) — why browser characters and our clients did not see each other (two separate servers)
 - [08 · Running and managing several clients](08-managing-clients.md) — the six-client fleet, tested versus proposed management, server rules, and remote access
+- [09 · Supervisor experiment](09-supervisor.md) — one process admitting, tracking and logging out six clients

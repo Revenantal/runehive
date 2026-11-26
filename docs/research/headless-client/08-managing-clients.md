@@ -47,9 +47,9 @@ There was no supervisor. A person (or the agent's shell) started each process. T
 
 Each process owns its own connection, keepalive timer, log file and cleanup. One process dying (including `kill -9`) did not affect the others, and cleanup was per process. The earlier experiment ([06](06-multiple-clients.md)) also ran six clients inside one process and found the same server behaviour.
 
-## How it could be managed: proposed, not built
+## How it could be managed: proposed, prototyped once
 
-The recommendation in [06](06-multiple-clients.md) is an embeddable client object with an explicit lifecycle, plus a **supervisor** that owns the things a single client cannot decide alone. Nothing below exists as code. The prototype's `login`, `logout` and `observe` functions are the only parts that would be reused.
+The recommendation in [06](06-multiple-clients.md) is an embeddable client object with an explicit lifecycle, plus a **supervisor** that owns the things a single client cannot decide alone. A throwaway one-process supervisor with in-process clients was run once ([09](09-supervisor.md)) and met its conditions, but it is not a design for the production client. Child processes were not tried.
 
 ```text
                  +--------------------------------+
@@ -102,7 +102,7 @@ All measured against the pinned server in production mode; details in [03](03-lo
 
 | Rule | Measured behaviour | Consequence |
 |---|---|---|
-| Per-device login limit | 5 attempts per 15 s; the fifth is refused with code 16 | Pace logins, or use distinct device ids. With one shared id, 4 of 6 clients were admitted in a burst |
+| Per-device login limit | The fifth attempt is refused with code 16. Every attempt, refused ones included, restarts a 15-second timer, so the count clears only after 15 s with no attempts | Four logins, then at least 15 quiet seconds; or distinct device ids. A fixed 4 s gap admitted only 4 of 6 ([09](09-supervisor.md)) |
 | Per-address login limit | 30 per minute | Fine for small fleets from one machine |
 | One session per account | Second login while online is refused with code 5 | The manager must track which accounts are online |
 | Stale session after a drop | After an abrupt disconnect the account stays "logged in" for between 18 and 34.6 s | Do not retry a dropped account immediately |
@@ -151,7 +151,7 @@ Use a fresh account name for each client, and wait about three seconds between s
 
 ## Not yet built or tested
 
-- A supervisor, a client lifecycle API, and a choice between in-process objects and child processes.
+- A production supervisor, a client lifecycle API, and a choice between in-process objects and child processes. The throwaway in [09](09-supervisor.md) used in-process clients only.
 - Reconnect after a dropped connection, and retry or backoff behaviour across a fleet.
 - Larger fleets. Six were tested; the server allows up to 1000 connections, but load and decode cost were not measured.
 - Whether a browser draws a character that never accepted the design. The owner saw the fleet, but the clients had not submitted a design in this run; whether they appeared as default-looking characters or something else was not recorded.

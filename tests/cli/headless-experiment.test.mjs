@@ -30,7 +30,7 @@ test('experiment help and invalid startup are actionable without echoing inputs'
     assert.equal(result.status, 2);
     assert.match(
       result.stderr,
-      /Expected "run", "login", "session", "session-idle", "logout", "logout-abrupt", "observe", "observe-designed", "observe-walking", or "--help"/,
+      /Expected "run", "login", "session", "session-idle", "logout", "logout-abrupt", "observe", "observe-designed", "observe-walking", "supervise", or "--help"/,
     );
     assert.doesNotMatch(result.stderr, /unknown-input/);
   }
@@ -196,3 +196,21 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
     },
   );
 }
+
+test('supervise rejects invalid extra settings without echoing them', () => {
+  for (const [name, value] of [
+    ['RUNEHIVE_EXPERIMENT_CLIENTS', '1'],
+    ['RUNEHIVE_EXPERIMENT_CLIENTS', 'fixture-bad'],
+    ['RUNEHIVE_EXPERIMENT_PACE_SECONDS', '0'],
+    ['RUNEHIVE_EXPERIMENT_FAIL_CLIENT', '9'],
+  ]) {
+    const result = spawnSync(process.execPath, [cli, 'supervise'], {
+      encoding: 'utf8',
+      env: { ...process.env, RUNEHIVE_EXPERIMENT_ACCOUNT_PREFIX: 'fx', [name]: value },
+    });
+    assert.equal(result.status, 2, name);
+    // Only a long, distinctive value can prove it was not echoed.
+    if (value.length > 3)
+      assert.equal((result.stdout + result.stderr).includes(value), false, name);
+  }
+});
