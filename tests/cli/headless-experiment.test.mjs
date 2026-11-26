@@ -30,7 +30,7 @@ test('experiment help and invalid startup are actionable without echoing inputs'
     assert.equal(result.status, 2);
     assert.match(
       result.stderr,
-      /Expected "run", "login", "session", "session-idle", "logout", "logout-abrupt", or "--help"/,
+      /Expected "run", "login", "session", "session-idle", "logout", "logout-abrupt", "observe", "observe-designed", "observe-walking", or "--help"/,
     );
     assert.doesNotMatch(result.stderr, /unknown-input/);
   }
@@ -59,6 +59,59 @@ test('login prompts for an account and rejects invalid input', () => {
   assert.match(result.stdout, /Experimental account:/);
   assert.match(result.stderr, /printable account name/);
   assert.doesNotMatch(result.stdout + result.stderr, /fixture-too-long-to-be-valid/);
+});
+
+test('log entries carry the configured client label and reject malformed ones', (t) => {
+  const root = mkdtempSync(path.join(tmpdir(), 'experiment-client-id-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const log = createExperimentLog(root, { clientId: 'client-07' });
+  log.started();
+  log.close();
+  const dir = path.join(root, '.runehive', 'headless-experiment');
+  const entry = JSON.parse(readFileSync(path.join(dir, readdirSync(dir)[0]), 'utf8'));
+  assert.equal(entry.clientId, 'client-07');
+  for (const bad of ['', 'client-1', 'HX0000', 'client-001x', '../client-01'])
+    assert.throws(() => createExperimentLog(root, { clientId: bad }), /Invalid client id/);
+});
+
+test('invalid experiment settings are rejected without echoing them', () => {
+  for (const [name, value] of [
+    ['RUNEHIVE_EXPERIMENT_CLIENT_ID', 'fixture-bad-label'],
+    ['RUNEHIVE_EXPERIMENT_DEVICE_ID', 'fixture-bad-device'],
+    ['RUNEHIVE_EXPERIMENT_DEVICE_ID', '99999999999'],
+    ['RUNEHIVE_EXPERIMENT_DEVICE_ID', ''],
+    ['RUNEHIVE_EXPERIMENT_TRANSPORT', 'fixture-bad-transport'],
+    ['RUNEHIVE_EXPERIMENT_SECONDS', 'fixture-bad-seconds'],
+    ['RUNEHIVE_EXPERIMENT_SECONDS', '4'],
+    ['RUNEHIVE_EXPERIMENT_SECONDS', '1801'],
+    ['RUNEHIVE_EXPERIMENT_SECONDS', ''],
+  ]) {
+    const result = spawnSync(process.execPath, [cli, 'login'], {
+      encoding: 'utf8',
+      env: { ...process.env, RUNEHIVE_EXPERIMENT_ACCOUNT: 'x', [name]: value },
+    });
+    assert.equal(result.status, 2, `${name}=${value}`);
+    assert.match(result.stderr, /RUNEHIVE_EXPERIMENT_CLIENT_ID must look like/);
+    assert.doesNotMatch(result.stdout + result.stderr, /fixture-bad|99999999999/);
+  }
+});
+
+test('every command listed in the help reads and validates the experiment settings', () => {
+  const help = spawnSync(process.execPath, [cli, '--help'], { encoding: 'utf8' }).stdout;
+  const commands = [...help.matchAll(/cli\.mjs (?!--)(\S+)/g)].map((m) => m[1]);
+  assert.ok(commands.length >= 9, `found ${commands.join(', ')}`);
+  for (const command of commands) {
+    const result = spawnSync(process.execPath, [cli, command], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        RUNEHIVE_EXPERIMENT_ACCOUNT: 'x',
+        RUNEHIVE_EXPERIMENT_CLIENT_ID: 'fixture-bad-label',
+      },
+    });
+    assert.equal(result.status, 2, `${command} did not validate its settings`);
+    assert.match(result.stderr, /RUNEHIVE_EXPERIMENT_CLIENT_ID must look like/, command);
+  }
 });
 
 test('logs isolate runs and reject unrecognized stop details', (t) => {

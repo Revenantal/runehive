@@ -46,7 +46,7 @@ The evidence that the clean logout worked is two separate client-visible facts: 
 
 ## Limitations and open questions
 
-- The client does not decode the server's `LOGOUT` packet (or any other game packet), so "the server confirmed the logout" is inferred from the close and the relogin, not read from the protocol. Decoding it would need the incoming opcode cipher and every packet length, which is the next obvious piece of protocol work.
+- At the time of these runs the client did not decode server packets, so "the server confirmed the logout" was inferred from the close and the relogin. The packet framer added later (see [07 · Visibility](07-visibility.md)) shows the server's `LOGOUT` packet arriving once after the button click in every `observe` run, which confirms it directly.
 - A click the server ignores would show up as no connection close within the 15-second wait. That outcome is covered by tests but did not occur live, so we have not seen what an ignored or blocked logout looks like in practice. We did not test a logout refused by the content (a duel, combat, a busy player, an open dialogue).
 - Only Tutorial Island accounts were tested, with no game actions taken first.
 - The plan asks to compare script-driven and CLI-controlled logout. What exists is a CLI command that runs a fixed script (log in, wait, log out). There is no way yet to tell an already-running client to log out, which would need some form of inter-process control. That question belongs with the multiple-client work.

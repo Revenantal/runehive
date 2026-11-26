@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import net from 'node:net';
 import { Isaac } from './isaac.mjs';
+import { PacketStream } from './packets.mjs';
 
 // Public parameters from the pinned browser client's bundled login implementation.
 const EXPONENT = 58778699976184461502525193738213253649000149147835990136706041084440742975821n;
@@ -78,12 +79,13 @@ function makeReader(socket) {
       buffer = buffer.subarray(count);
       return value;
     },
-    /** Discards subsequent packets until packet decoding is implemented. */
-    discard(onBytes) {
+    /** Hands every later chunk, including any already buffered, to the handler. */
+    stream(onChunk) {
       socket.removeAllListeners('data');
-      if (buffer.length) onBytes(buffer.length);
+      const pending = buffer;
       buffer = Buffer.alloc(0);
-      socket.on('data', (data) => onBytes(data.length));
+      socket.on('data', onChunk);
+      if (pending.length) onChunk(pending);
       socket.resume();
     },
   };
@@ -100,6 +102,8 @@ export async function login({
   connect = net.createConnection,
   random = randomBytes,
   onBytes = () => {},
+  deviceId = 1337,
+  onPacket = null,
 }) {
   if (
     typeof account !== 'string' ||
@@ -108,6 +112,8 @@ export async function login({
     !/^[\x20-\x7e]{1,20}$/.test(password)
   )
     throw new Error('INVALID_CREDENTIAL_FORMAT');
+  if (!Number.isInteger(deviceId) || deviceId < 0 || deviceId > 0x7fffffff)
+    throw new Error('INVALID_DEVICE_ID');
   let response;
   try {
     response = await fetcher(`http://${host}:${webPort}/crc`, {
@@ -127,7 +133,8 @@ export async function login({
     const hello = await reader.read(9);
     if (hello[8] !== 0) return { kind: 'rejected', code: hello[8], socket };
     const seed = await reader.read(8);
-    const uid = Buffer.from([0, 0, 5, 57]);
+    const uid = Buffer.alloc(4);
+    uid.writeInt32BE(deviceId);
     const clientSeed = random(8);
     const credentials = Buffer.concat([
       Buffer.from([10]),
@@ -142,14 +149,22 @@ export async function login({
     const code = (await reader.read(1))[0];
     if (code !== 2) return { kind: 'rejected', code, socket };
     const flags = await reader.read(2);
-    reader.discard(onBytes);
     socket.setTimeout(0);
-    const cipher = new Isaac([
+    const seeds = [
       clientSeed.readInt32BE(0),
       clientSeed.readInt32BE(4),
       seed.readInt32BE(0),
       seed.readInt32BE(4),
-    ]);
+    ];
+    const cipher = new Isaac(seeds);
+    // The server-to-client direction uses the same seeds plus 50, as the pinned client does.
+    const packets = onPacket ? new PacketStream(new Isaac(seeds.map((s) => (s + 50) | 0))) : null;
+    reader.stream((chunk) => {
+      onBytes(chunk.length);
+      if (!packets) return;
+      for (const packet of packets.push(chunk)) onPacket(packet);
+      if (packets.broken) onPacket({ broken: packets.broken });
+    });
     return {
       kind: 'accepted',
       staffLevel: flags[0],
@@ -159,6 +174,52 @@ export async function login({
         if (!Number.isInteger(component) || component < 0 || component > 0xffff)
           throw new Error('INVALID_COMPONENT');
         socket.write(Buffer.from([(9 + cipher.nextInt) & 255, component >> 8, component & 255]));
+      },
+      /** Sends one ISAAC-encoded character-design packet: gender, seven body parts, five colours. */
+      sendDesign({ gender, parts, colors }) {
+        const valid =
+          (gender === 0 || gender === 1) &&
+          Array.isArray(parts) &&
+          parts.length === 7 &&
+          parts.every((n) => Number.isInteger(n) && n >= -1 && n <= 254) &&
+          Array.isArray(colors) &&
+          colors.length === 5 &&
+          colors.every((n) => Number.isInteger(n) && n >= 0 && n <= 254);
+        if (!valid) throw new Error('INVALID_DESIGN');
+        const body = [gender, ...parts.map((n) => (n === -1 ? 255 : n)), ...colors];
+        socket.write(Buffer.from([(125 + cipher.nextInt) & 255, ...body]));
+      },
+      /** Sends one ISAAC-encoded walk request: a start tile and up to 24 waypoint offsets from it. */
+      sendWalk({ startX, startZ, steps, run = false }) {
+        const valid =
+          Number.isInteger(startX) &&
+          startX >= 0 &&
+          startX <= 0xffff &&
+          Number.isInteger(startZ) &&
+          startZ >= 0 &&
+          startZ <= 0xffff &&
+          Array.isArray(steps) &&
+          steps.length >= 1 &&
+          steps.length <= 24 &&
+          steps.every(
+            ([dx, dz]) =>
+              Number.isInteger(dx) &&
+              Number.isInteger(dz) &&
+              dx >= -128 &&
+              dx <= 127 &&
+              dz >= -128 &&
+              dz <= 127,
+          );
+        if (!valid) throw new Error('INVALID_WALK');
+        const payload = [
+          run ? 1 : 0,
+          startX >> 8,
+          startX & 255,
+          startZ >> 8,
+          startZ & 255,
+          ...steps.flatMap(([dx, dz]) => [dx & 255, dz & 255]),
+        ];
+        socket.write(Buffer.from([(207 + cipher.nextInt) & 255, payload.length, ...payload]));
       },
       /** Sends the protocol's ISAAC-encoded no-timeout opcode. */
       sendKeepalive() {

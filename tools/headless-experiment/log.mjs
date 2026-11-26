@@ -2,8 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { closeSync, mkdirSync, openSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-/** Creates an exclusive, private log with only predefined lifecycle records. */
-export function createExperimentLog(root) {
+/** Creates an exclusive, private log with only predefined lifecycle records for one client. */
+export function createExperimentLog(root, { clientId = 'client-01' } = {}) {
+  if (!/^client-\d{2,3}$/.test(clientId)) throw new Error('Invalid client id');
   const runId = randomUUID();
   const directory = path.join(root, '.runehive', 'headless-experiment');
   mkdirSync(directory, { recursive: true, mode: 0o700 });
@@ -18,7 +19,7 @@ export function createExperimentLog(root) {
       msg: event,
       component: 'headless-experiment',
       runId,
-      clientId: 'client-01',
+      clientId,
       ...details,
     };
     writeFileSync(fd, `${JSON.stringify(entry)}\n`);
@@ -74,6 +75,24 @@ export function createExperimentLog(root) {
       )
         throw new Error('Invalid session outcome');
       record('session.finished', { reason, elapsedMs, bytes, keepalives });
+    },
+    /** Records aggregate counts of what the server said about nearby players; no identities. */
+    viewObserved(elapsedMs, packets, viewSize, added, removed) {
+      if (
+        ![elapsedMs, packets, viewSize, added, removed].every(
+          (n) => Number.isSafeInteger(n) && n >= 0,
+        )
+      )
+        throw new Error('Invalid view observation');
+      record('view.observed', { elapsedMs, packets, viewSize, added, removed });
+    },
+    /** Records that a short walk was requested; the outcome is observed separately. */
+    walkRequested() {
+      record('walk.requested');
+    },
+    /** Records that the default character design was submitted and accepted by click. */
+    designSubmitted() {
+      record('design.submitted');
     },
     /** Records that a logout (clean button click or abrupt disconnect) was requested. */
     logoutRequested(mode) {

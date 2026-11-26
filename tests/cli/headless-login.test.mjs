@@ -77,6 +77,73 @@ test('login returns a rejection without inventing its cause', async () => {
   assert.equal(result.code, 3);
 });
 
+test('a design packet carries gender, seven parts and five colours, and rejects bad input', async () => {
+  const socket = new FakeSocket([2, 0, 1]);
+  const result = await login({
+    account: ['HX', '9999'].join(''),
+    fetcher,
+    connect: () => socket,
+    random: () => Buffer.alloc(8),
+  });
+  const design = { gender: 0, parts: [0, 10, 18, 26, 33, 36, -1], colors: [1, 2, 3, 4, 5] };
+  result.sendDesign(design);
+  const sent = [...socket.writes[2]];
+  assert.equal(sent.length, 14, 'one opcode byte plus thirteen bytes');
+  assert.deepEqual(sent.slice(1), [0, 0, 10, 18, 26, 33, 36, 255, 1, 2, 3, 4, 5]);
+  for (const bad of [
+    { ...design, gender: 2 },
+    { ...design, parts: [0, 1] },
+    { ...design, parts: [0, 1, 2, 3, 4, 5, 300] },
+    { ...design, colors: [1, 2, 3, 4] },
+    { ...design, colors: [1, 2, 3, 4, -1] },
+  ])
+    assert.throws(() => result.sendDesign(bad), /INVALID_DESIGN/);
+  assert.equal(socket.writes.length, 3, 'nothing is sent for an invalid design');
+});
+
+test('a walk request carries a start tile and signed waypoint offsets, and rejects bad paths', async () => {
+  const socket = new FakeSocket([2, 0, 1]);
+  const result = await login({
+    account: ['HX', '9999'].join(''),
+    fetcher,
+    connect: () => socket,
+    random: () => Buffer.alloc(8),
+  });
+  result.sendWalk({
+    startX: 3094,
+    startZ: 3106,
+    steps: [
+      [0, 2],
+      [-3, 1],
+    ],
+  });
+  const sent = [...socket.writes[2]];
+  assert.equal(sent[1], 5 + 2 * 2, 'length byte counts the payload only');
+  assert.deepEqual(sent.slice(2), [0, 12, 22, 12, 34, 0, 2, 253, 1]);
+  const base = { startX: 1, startZ: 1, steps: [[0, 1]] };
+  for (const bad of [
+    { ...base, startX: -1 },
+    { ...base, startZ: 70000 },
+    { ...base, steps: [] },
+    { ...base, steps: Array(25).fill([0, 1]) },
+    { ...base, steps: [[200, 0]] },
+    { ...base, steps: [[0.5, 0]] },
+  ])
+    assert.throws(() => result.sendWalk(bad), /INVALID_WALK/);
+  assert.equal(socket.writes.length, 3, 'nothing is sent for an invalid walk');
+});
+
+test('login rejects an out-of-range device id before touching the network', async () => {
+  let touched = false;
+  const watchFetch = async () => {
+    touched = true;
+    throw new Error('should not be called');
+  };
+  for (const deviceId of [-1, 1.5, 2 ** 31, '1337', NaN])
+    await assert.rejects(login({ account, fetcher: watchFetch, deviceId }), /INVALID_DEVICE_ID/);
+  assert.equal(touched, false);
+});
+
 test('login fails safely when cache is unavailable or malformed', async () => {
   await assert.rejects(
     login({
