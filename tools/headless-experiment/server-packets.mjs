@@ -61,6 +61,17 @@ export const SERVER_PACKETS = new Map([
   [32, { name: 'UPDATE_ZONE_PARTIAL_FOLLOWS', length: 2 }],
   [153, { name: 'UPDATE_ZONE_FULL_FOLLOWS', length: 2 }],
   [195, { name: 'UPDATE_ZONE_PARTIAL_ENCLOSED', length: -2 }],
+  // Zone operations may also be sent as individually framed packets.
+  [176, { name: 'P_LOCMERGE', length: 14 }],
+  [48, { name: 'LOC_ANIM', length: 4 }],
+  [52, { name: 'OBJ_DEL', length: 3 }],
+  [219, { name: 'OBJ_REVEAL', length: 7 }],
+  [138, { name: 'LOC_ADD_CHANGE', length: 4 }],
+  [107, { name: 'MAP_PROJANIM', length: 15 }],
+  [173, { name: 'LOC_DEL', length: 2 }],
+  [95, { name: 'OBJ_COUNT', length: 7 }],
+  [85, { name: 'MAP_ANIM', length: 6 }],
+  [81, { name: 'OBJ_ADD', length: 5 }],
 ]);
 
 export const PLAYER_INFO = 167;
