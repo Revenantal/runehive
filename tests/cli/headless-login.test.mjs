@@ -201,3 +201,40 @@ test('login rejects supplied checksums of the wrong size', async () => {
     /INVALID_CACHE_RESPONSE/,
   );
 });
+
+test('location interaction sends option one and validates coordinates and id', async () => {
+  const socket = new FakeSocket([2, 0, 1]);
+  const result = await login({
+    account,
+    fetcher,
+    connect: () => socket,
+    random: () => Buffer.alloc(8),
+  });
+  result.sendLocationOption1({ x: 3226, z: 3214, id: 1530 });
+  assert.deepEqual([...socket.writes[2]].slice(1), [12, 154, 12, 142, 5, 250]);
+  for (const bad of [
+    { x: -1, z: 1, id: 1 },
+    { x: 1, z: 65536, id: 1 },
+    { x: 1, z: 1, id: 0.5 },
+  ])
+    assert.throws(() => result.sendLocationOption1(bad), /INVALID_LOCATION_INTERACTION/);
+  assert.equal(socket.writes.length, 3);
+});
+
+test('location interaction selects the requested protocol option', async () => {
+  const socket = new FakeSocket([2, 0, 1]);
+  const result = await login({
+    account,
+    fetcher,
+    connect: () => socket,
+    random: () => Buffer.alloc(8),
+  });
+  result.sendLocationOption({ x: 3229, z: 3213, id: 1748, option: 3 });
+  assert.equal(socket.writes[2][0], 174);
+  assert.deepEqual([...socket.writes[2]].slice(1), [12, 157, 12, 141, 6, 212]);
+  for (const option of [0, 6, 1.5, undefined])
+    assert.throws(
+      () => result.sendLocationOption({ x: 1, z: 1, id: 1, option }),
+      /INVALID_LOCATION_INTERACTION/,
+    );
+});

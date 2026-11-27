@@ -225,6 +225,32 @@ export async function login({
         ];
         socket.write(Buffer.from([(207 + cipher.nextInt) & 255, payload.length, ...payload]));
       },
+      /** Sends one of the five client-visible interaction options for a location. */
+      sendLocationOption({ x, z, id, option }) {
+        const opcodes = [215, 103, 187, 157, 127];
+        if (
+          ![x, z, id].every((n) => Number.isInteger(n) && n >= 0 && n <= 0xffff) ||
+          !Number.isInteger(option) ||
+          option < 1 ||
+          option > 5
+        )
+          throw new Error('INVALID_LOCATION_INTERACTION');
+        socket.write(
+          Buffer.from([
+            (opcodes[option - 1] + cipher.nextInt) & 255,
+            x >> 8,
+            x & 255,
+            z >> 8,
+            z & 255,
+            id >> 8,
+            id & 255,
+          ]),
+        );
+      },
+      /** Sends the first client-visible interaction option for a location. */
+      sendLocationOption1({ x, z, id }) {
+        this.sendLocationOption({ x, z, id, option: 1 });
+      },
       /** Sends the protocol's ISAAC-encoded no-timeout opcode. */
       sendKeepalive() {
         socket.write(Buffer.from([(120 + cipher.nextInt) & 255]));
