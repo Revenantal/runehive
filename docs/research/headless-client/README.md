@@ -41,6 +41,17 @@ npm run experiment:headless -- supervise-children  # same, one child process and
 
 Six environment variables apply to every command. `RUNEHIVE_EXPERIMENT_HOST` (default `127.0.0.1`) names the server to connect to, and `RUNEHIVE_EXPERIMENT_CRC_FILE` points at a saved copy of the server's 40-byte `/crc` response, so the client does not need the web port. Save it on the server's machine with `curl -s http://localhost:8888/crc -o lostcity/.runehive/crc.bin`; it changes only when the cache is repacked. `RUNEHIVE_EXPERIMENT_SECONDS` (5 to 1800, default 30) sets how long the `observe` commands stay online, and `RUNEHIVE_EXPERIMENT_TRANSPORT` is `tcp` (default) or `websocket`. `RUNEHIVE_EXPERIMENT_CLIENT_ID` (for example `client-02`) labels that client's log so clients can be told apart. `RUNEHIVE_EXPERIMENT_DEVICE_ID` (a non-negative integer) sets the device id sent at login; by default every client sends the same value as the pinned browser client, which the server counts as one device. Neither is a credential and neither is logged. Invalid values are rejected without being echoed. See [06 · Multiple clients](06-multiple-clients.md) for what these change.
 
+## Retained movement demonstrations
+
+The following focused drivers are retained for reference and reuse, not as production navigation APIs. They require a disposable ordinary-player account supplied through `RUNEHIVE_EXPERIMENT_ACCOUNT` and a host supplied through `RUNEHIVE_EXPERIMENT_HOST`. Account names are credentials in this experiment; avoid placing them in source, shell history, or logs. Each driver uses fixed world-specific coordinates and stops on unexpected observations.
+
+- `tools/headless-experiment/demos/walking-loop-demo.mjs` repeats a short route at the tutorial-area starting position.
+- `tools/headless-experiment/demos/random-walk-demo.mjs` chooses bounded paths in the tutorial-area region. It requires previously validated client asset files `/tmp/rhdemo-ground.bin`, `/tmp/rhdemo-region.bin`, `/tmp/rhdemo-index.bin` and `/tmp/rhdemo-data.bin`; the one-off acquisition script used in the original experiment was not retained. It does not verify those files itself, so do not treat them as current or use this driver without independently validating and preparing them.
+- `tools/headless-experiment/demos/door-ladder-demo.mjs` exercises a particular main-world door and ladder. See [15](15-main-world-interactions.md) for its prerequisites, observations and limitations.
+- `tools/headless-experiment/demos/move-a-to-b.mjs` is the explicit one-move baseline. `demos/programs/move-to-point.mjs` is the import-free action-only comparison, statically loaded by `demos/run-move-program.mjs`. Both require pre-acquired validated region assets, and the host is not a sandbox for generated scripts. See [16](16-move-a-to-b.md).
+
+Some earlier one-off probes were deleted before the decision to retain scripts; their findings are preserved in the experiment notes, but the deleted drivers are not claimed as retained.
+
 ## Logs and retention
 
 Run from the repository root so `.runehive/` is Git-ignored. Logs are local diagnostic artifacts, retained until an operator chooses to remove them; there is no automatic rotation or cleanup. Files are created exclusively with owner-only permissions where supported. Avoid sharing logs without review. At present the logger accepts fixed startup, shutdown, login-result, aggregate session-observation and logout/relogin events; it does not yet log general game actions, decoded game observations, or detailed errors. It has no generic redactor: extend its schema and add credential-leak tests before introducing credentials or arbitrary protocol data.
@@ -59,3 +70,7 @@ Run from the repository root so `.runehive/` is Git-ignored. Logs are local diag
 - [10 · Child processes](10-child-processes.md) — one worker process per client, distinct device ids, kill, stall and parent-crash cases
 - [11 · Initial state discovery](11-initial-state.md) — protocol research and live position and movement observations
 - [12 · Routefinding](12-routefinding.md) — browser collision data and a bounded turn-waypoint comparison
+- [13 · Tutorial NPC perception](13-tutorial-npcs.md) — client-visible NPC updates and tutorial progress
+- [14 · Vanilla tutorial bypass](14-tutorial-bypass.md) — existing non-production option, effects, and risks
+- [15 · Main-world navigation interactions](15-main-world-interactions.md) — door and ladder experiments
+- [16 · One A-to-B movement script](16-move-a-to-b.md) — baseline before simplifying the script API

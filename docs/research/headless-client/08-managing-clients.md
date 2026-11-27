@@ -128,18 +128,15 @@ In this setup the agent's sandbox mounts the owner's checkout, but the network i
 
 | Item | Detail |
 |---|---|
-| Server address | The host is reachable as `host.microsandbox.internal` (`172.16.0.5`) |
-| Game port | 43594 was reachable |
-| Web port | 8888 was blocked by the sandbox network policy; the cause on the host side was ruled out because both ports listened on `0.0.0.0` |
-| Workaround | The client needs 40 bytes of cache checksums that it would fetch from port 8888. The server's machine saves them once to a shared file, and the client reads that file |
+| Server address | In this environment, the sandbox gateway and the host's LAN address are distinct addresses; discover the latter on the host with `hostname -I` |
+| Game port | 43594 was reachable through the gateway and through the host LAN address |
+| Web port | 8888 refused connections through the gateway but was reachable through the host LAN address. The reason for the gateway behavior is not established |
+| Client bootstrap | Use the reachable server address for both ports. The client fetches `/crc` itself; a saved CRC file is an optional experimental fallback, not the intended requirement |
 
 ```sh
-# On the server's machine, once, while the server runs (re-run if the cache is repacked):
-curl -s http://localhost:8888/crc -o lostcity/.runehive/crc.bin && wc -c lostcity/.runehive/crc.bin   # prints 40
-
-# From anywhere that can reach the game port, for each client i (a distinct device id each):
-RUNEHIVE_EXPERIMENT_HOST=host.microsandbox.internal \
-RUNEHIVE_EXPERIMENT_CRC_FILE=lostcity/.runehive/crc.bin \
+# From a machine that can reach the server's game and web ports:
+# Substitute the host's reachable address; the client fetches checksums itself.
+RUNEHIVE_EXPERIMENT_HOST=<server-address> \
 RUNEHIVE_EXPERIMENT_SECONDS=120 \
 RUNEHIVE_EXPERIMENT_CLIENT_ID=client-2$i \
 RUNEHIVE_EXPERIMENT_DEVICE_ID=200$i \
