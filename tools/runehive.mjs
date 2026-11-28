@@ -48,9 +48,13 @@ Monitor options:
   --once             Print recent events and exit
 `;
 
-/** Runs a Git command and returns trimmed stdout. */
+/**
+ * Runs a Git command and returns trimmed stdout. Background maintenance is disabled: Git otherwise
+ * forks a detached maintenance process after fetches, and on a host whose PID 1 does not reap
+ * orphans each one stays defunct forever.
+ */
 function git(args, cwd, opts = {}) {
-  return execFileSync('git', args, {
+  return execFileSync('git', ['-c', 'maintenance.auto=false', ...args], {
     cwd,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],

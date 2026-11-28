@@ -14,6 +14,9 @@ const cli = path.resolve(
   'runehive.mjs',
 );
 const GIT_ID = [
+  // Detached background maintenance would be orphaned and, on a host whose PID 1 does not reap, leak a zombie.
+  '-c',
+  'maintenance.auto=false',
   '-c',
   'user.name=Test',
   '-c',

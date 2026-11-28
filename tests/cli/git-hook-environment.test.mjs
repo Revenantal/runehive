@@ -8,6 +8,9 @@ import { fileURLToPath } from 'node:url';
 
 const initTests = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'init.test.mjs');
 const ID = [
+  // Detached background maintenance would be orphaned and, on a host whose PID 1 does not reap, leak a zombie.
+  '-c',
+  'maintenance.auto=false',
   '-c',
   'user.name=Test',
   '-c',
