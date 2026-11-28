@@ -19,6 +19,7 @@ How the system works, shared across milestones. Each system doc lists the milest
 
 - [Architecture and repository](system/architecture.md)
 - [LostCity and the Headless Client](system/lostcity-and-headless-client.md)
+- [Headless client modules](system/headless-client-modules.md) — Intended module layout and the script surface (concept).
 - [Agent Runtime](system/agent-runtime.md)
 - [Discovery Memory](system/discovery-memory.md)
 - [Control Center](system/control-center.md)

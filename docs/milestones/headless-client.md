@@ -7,10 +7,10 @@ design: []
 builds:
   - { name: "Existing server SQLite diagnostic monitor", system: lostcity-and-headless-client, status: done }
   - { name: "Disposable headless client discovery prototype", system: lostcity-and-headless-client, status: in-design }
-  - { name: "Protocol and session layer (login, maintenance, reconnect)", system: lostcity-and-headless-client, status: in-design }
-  - { name: "Client state (position, nearby targets, inventory, skills, interfaces)", system: lostcity-and-headless-client, status: in-design }
-  - { name: "Generic interact action", system: lostcity-and-headless-client, status: in-design }
-  - { name: "Typed CLI and scripting interface", system: lostcity-and-headless-client, status: in-design }
+  - { name: "Protocol and session layer (login, maintenance, reconnect)", system: headless-client-modules, status: in-design }
+  - { name: "Client state (position, nearby targets, inventory, skills, interfaces)", system: headless-client-modules, status: in-design }
+  - { name: "Generic interact action", system: headless-client-modules, status: in-design }
+  - { name: "Typed CLI and scripting interface", system: headless-client-modules, status: in-design }
 ---
 # Build the Headless Client
 
@@ -26,10 +26,10 @@ builds:
 |---|---|---|
 | Existing server SQLite diagnostic monitor | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) | Done |
 | Disposable headless client discovery prototype | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) | In design |
-| Protocol and session layer (login, maintenance, reconnect) | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) | In design |
-| Client state (position, nearby targets, inventory, skills, interfaces) | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) | In design |
-| Generic interact action | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) | In design |
-| Typed CLI and scripting interface | [LostCity and the Headless Client](../system/lostcity-and-headless-client.md) | In design |
+| Protocol and session layer (login, maintenance, reconnect) | [Headless client modules](../system/headless-client-modules.md) | In design |
+| Client state (position, nearby targets, inventory, skills, interfaces) | [Headless client modules](../system/headless-client-modules.md) | In design |
+| Generic interact action | [Headless client modules](../system/headless-client-modules.md) | In design |
+| Typed CLI and scripting interface | [Headless client modules](../system/headless-client-modules.md) | In design |
 
 **Plans** (revisions to this milestone's builds)
 
