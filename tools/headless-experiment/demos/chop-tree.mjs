@@ -17,6 +17,9 @@ import { LOGOUT_BUTTON_COMPONENT } from '../logout.mjs';
 
 // Usage: node chop-tree.mjs <config dir> <map dir> [exact object name, default Tree] [seconds, default 60] [skip, default 0] [approach]
 // skip chooses the nth-nearest routed object, for example to avoid one already cut down.
+// afterwards then-walk-through: once the tree is felled, walk three tiles straight across its tile
+// to test a stump. then-chop-again asks to chop the same, now felled, tree with its old id, as a
+// client with an out-of-date scene would.
 // approach request-first (default) asks first and walks only after a refusal; opclick sends the
 // planned route as an operation-click walk and then the request, as the browser client does.
 const [
@@ -26,6 +29,7 @@ const [
   secondsText = '60',
   skipText = '0',
   approach = 'request-first',
+  afterwards = '',
 ] = process.argv.slice(2);
 if (!['request-first', 'opclick'].includes(approach)) throw new Error('INVALID_APPROACH');
 const skip = Number(skipText);
@@ -109,7 +113,7 @@ const client = await login({
         }
       }
       const inv = inventories.apply(packet);
-      if (inv && requested) note({ type: 'inventory', ...inv });
+      if (inv && requested) note({ ...inv, type: 'inventory', change: inv.type });
       if (packet.name === 'MESSAGE_GAME' && requested)
         note({ type: 'message', text: gameMessage(packet.payload) });
       if (
@@ -297,6 +301,48 @@ if (client.kind !== 'accepted' || client.staffLevel !== 0) {
         : outcomeAt === null
           ? 'deadline'
           : 'outcome-evidence-seen';
+      if (afterwards === 'then-chop-again' && outcomeAt !== null) {
+        await sleep(1500);
+        const mark = timeline.length;
+        const before = { ...state.state.position };
+        note({ type: 'stale-request', target });
+        client.sendLocationOption({
+          x: target.x,
+          z: target.z,
+          id: target.id,
+          option: target.option,
+        });
+        await sleep(8000);
+        const after = timeline.slice(mark);
+        result.staleRequest = {
+          messages: after
+            .filter((e) => e.type === 'message')
+            .map((e) => ({ ms: e.ms, text: e.text })),
+          moved: state.state.position.x !== before.x || state.state.position.z !== before.z,
+          events: after
+            .filter((e) => e.type !== 'message' && e.type !== 'position')
+            .map((e) => e.type),
+        };
+      }
+      if (afterwards === 'then-walk-through' && outcomeAt !== null) {
+        // Walk three tiles from the standing tile straight across the felled tree's tile.
+        const from = { ...state.state.position };
+        const dx = Math.sign(target.x - target.standAt.x),
+          dz = Math.sign(target.z - target.standAt.z);
+        const goal = { x: from.x + 3 * dx, z: from.z + 3 * dz };
+        note({ type: 'stump-walk-start', from, goal });
+        client.sendWalk({ startX: from.x, startZ: from.z, steps: [[3 * dx, 3 * dz]] });
+        await sleep(6000);
+        const end = { ...state.state.position };
+        result.stumpWalk = {
+          from,
+          goal,
+          final: end,
+          reachedGoal: end.x === goal.x && end.z === goal.z,
+          moved: end.x !== from.x || end.z !== from.z,
+        };
+        note({ type: 'stump-walk-end', ...result.stumpWalk });
+      }
     }
   } finally {
     clearInterval(keepalive);

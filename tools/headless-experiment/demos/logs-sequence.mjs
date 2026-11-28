@@ -15,8 +15,12 @@ import { LOGOUT_BUTTON_COMPONENT } from '../logout.mjs';
 // Usage: node logs-sequence.mjs <config dir> [exact item name, default Logs] [mode]
 // mode ground-option (default): drop, take, drop, light with the ground Light option.
 // mode use-on-ground: drop, then use the tinderbox on the dropped item. Each step is judged alone.
+// mode fire-on-fire: light one fire, stand on it, drop a second log there and try to light that too.
+// mode fire-walk: drop and light with the ground option, walk straight across the fire, wait for it to
+// burn out, then cross the tile again.
 const [configDir, itemName = 'Logs', mode = 'ground-option'] = process.argv.slice(2);
-if (!['ground-option', 'use-on-ground'].includes(mode)) throw new Error('INVALID_MODE');
+if (!['ground-option', 'use-on-ground', 'fire-walk', 'fire-on-fire'].includes(mode))
+  throw new Error('INVALID_MODE');
 if (!configDir) throw new Error('USAGE: logs-sequence.mjs <config dir> [item name]');
 const read = (name) => readFileSync(`${configDir}/${name}`);
 const components = decodeInterfaces(read('interface.dat'));
@@ -78,7 +82,7 @@ const client = await login({
           if (recording && event.kind !== 'zone-reset') note({ type: 'zone', ...event });
         }
       const inv = inventories.apply(packet);
-      if (inv && recording) note({ type: 'inventory', ...inv });
+      if (inv && recording) note({ ...inv, type: 'inventory', change: inv.type });
       if (packet.name === 'MESSAGE_GAME' && recording)
         note({ type: 'message', text: gameMessage(packet.payload) });
       if (
@@ -284,12 +288,13 @@ if (client.kind !== 'accepted' || client.staffLevel !== 0) {
           step: label,
           outcome: ok ? 'completed' : 'unknown',
           reason: ok ? 'item-left-ground-and-object-appeared' : 'no-confirming-pair-of-updates',
+          litAtMs: Math.round(performance.now() - started),
           objectsAdded: added.map((a, i) => ({ ...a, name: names[i] })),
         };
       };
 
       const plan =
-        mode === 'use-on-ground'
+        mode === 'use-on-ground' || mode === 'fire-walk' || mode === 'fire-on-fire'
           ? [
               ['drop', drop],
               ['light', light],
@@ -307,6 +312,130 @@ if (client.kind !== 'accepted' || client.staffLevel !== 0) {
         await sleep(1500);
       }
       // Let a lit fire's later changes show up before logging out.
+      if (
+        mode === 'fire-walk' &&
+        steps.at(-1)?.step === 'light' &&
+        steps.at(-1).outcome === 'completed'
+      ) {
+        const fire = steps.at(-1).objectsAdded[0];
+        await sleep(3000);
+        const beside = { ...state.state.position };
+        const d = { x: Math.sign(fire.x - beside.x), z: Math.sign(fire.z - beside.z) };
+        const straight =
+          Math.abs(d.x) + Math.abs(d.z) === 1 &&
+          Math.abs(fire.x - beside.x) + Math.abs(fire.z - beside.z) === 1;
+        const fireWalk = { fire: { x: fire.x, z: fire.z, id: fire.id, name: fire.name }, beside };
+        /** Walks two tiles in one direction from where the character stands and reports where it stopped. */
+        const cross = async (label, dir) => {
+          const from = { ...state.state.position };
+          const goal = { x: from.x + 2 * dir.x, z: from.z + 2 * dir.z };
+          note({ type: 'cross-start', label, from, goal });
+          client.sendWalk({ startX: from.x, startZ: from.z, steps: [[2 * dir.x, 2 * dir.z]] });
+          await until(
+            () => state.state.position.x === goal.x && state.state.position.z === goal.z,
+            6000,
+          );
+          const final = { ...state.state.position };
+          return {
+            label,
+            from,
+            goal,
+            final,
+            crossed: final.x === goal.x && final.z === goal.z,
+            moved: final.x !== from.x || final.z !== from.z,
+          };
+        };
+        if (!straight) fireWalk.reason = 'character-not-straight-beside-the-fire';
+        else {
+          fireWalk.whileBurning = await cross('while-burning', d);
+          // Wait for the fire to be replaced or removed, up to three minutes.
+          const markFire = timeline.length;
+          const changed = () =>
+            timeline
+              .slice(markFire)
+              .find(
+                (e) =>
+                  e.type === 'zone' &&
+                  e.x === fire.x &&
+                  e.z === fire.z &&
+                  (e.kind === 'remove' || e.kind === 'add-change'),
+              );
+          const burned = await until(() => Boolean(changed()), 180000);
+          const change = changed();
+          fireWalk.burnout = burned
+            ? {
+                seconds: Math.round((change.ms - steps.at(-1).litAtMs) / 100) / 10,
+                kind: change.kind,
+                id: change.id ?? null,
+                name:
+                  change.id === undefined
+                    ? null
+                    : (() => {
+                        try {
+                          return decodeLocationDefinition(locIdx, locDat, change.id, {
+                            includeText: true,
+                          }).name;
+                        } catch {
+                          return 'unknown';
+                        }
+                      })(),
+              }
+            : 'not-seen-within-three-minutes';
+          await sleep(1500);
+          if (burned) {
+            const back = { x: -d.x, z: -d.z };
+            fireWalk.afterBurning = await cross(
+              'after-burning',
+              fireWalk.whileBurning.crossed ? back : d,
+            );
+          }
+        }
+        steps.push({
+          step: 'fire-walk',
+          outcome: 'completed',
+          reason: 'observations-recorded',
+          ...fireWalk,
+        });
+      }
+      if (
+        mode === 'fire-on-fire' &&
+        steps.at(-1)?.step === 'light' &&
+        steps.at(-1).outcome === 'completed'
+      ) {
+        const fire = steps.at(-1).objectsAdded[0];
+        await sleep(3000);
+        const here = { ...state.state.position };
+        // Step back onto the burning tile; a fire does not block walking.
+        client.sendWalk({
+          startX: here.x,
+          startZ: here.z,
+          steps: [[fire.x - here.x, fire.z - here.z]],
+        });
+        await until(
+          () => state.state.position.x === fire.x && state.state.position.z === fire.z,
+          5000,
+        );
+        await sleep(1000);
+        const mark = timeline.length;
+        const dropped = await drop('drop-on-fire');
+        steps.push(dropped);
+        if (dropped.outcome === 'completed') {
+          const tried = await light('light-on-fire');
+          steps.push({ ...tried, note: 'a fire already burned on this tile' });
+        }
+        steps.push({
+          step: 'messages-after-second-drop',
+          outcome: 'completed',
+          messages: timeline
+            .slice(mark)
+            .filter((e) => e.type === 'message')
+            .map((e) => ({ ms: e.ms, text: e.text })),
+          zone: timeline
+            .slice(mark)
+            .filter((e) => e.type === 'zone')
+            .map((e) => ({ ms: e.ms, kind: e.kind, id: e.id, x: e.x, z: e.z })),
+        });
+      }
       if (steps.at(-1)?.step === 'light') await sleep(8000);
     }
   } finally {
