@@ -81,7 +81,9 @@ This module stores observations. Whether something is an "enemy", "edible" or "v
 
 **Does not:** plan routes. It reports what it observed afterwards, not what it hoped for.
 
-Inventory, equipment and dialogue may become separate modules. Dialogue is the strongest candidate: quests and conversations are driven by choice menus, so the open dialogue (speaker, text, and either a continue or a list of choices) is likely its own state, with `continue()` and `choose(n)` actions ([18](../research/headless-client/18-npc-dialogue.md)).
+**Options are data.** Every item, NPC and object reports its options as numbered labels taken from the client definitions, plus where each came from, because labels vary (`Talk-to`, `Talk to`, `Talk`) and an agent will meet options it has not seen. Examining something is a local lookup that returns the definition's text, with no server request ([19](../research/headless-client/19-inventory-equipment.md)).
+
+Inventory, equipment and dialogue may become separate modules. Observed inventories are sparse and slot positions shift, so state should expose items by what they are, with the current slot reported by the latest update ([19](../research/headless-client/19-inventory-equipment.md)). Dialogue is the strongest candidate: quests and conversations are driven by choice menus, so the open dialogue (speaker, text, and either a continue or a list of choices) is likely its own state, with `continue()` and `choose(n)` actions ([18](../research/headless-client/18-npc-dialogue.md)).
 
 ### Navigation
 

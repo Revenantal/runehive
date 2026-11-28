@@ -78,3 +78,7 @@ Run from the repository root so `.runehive/` is Git-ignored. Logs are local diag
 - [16 · One A-to-B movement script](16-move-a-to-b.md) — baseline before simplifying the script API
 - [17 · Multiple actions in one session](17-multi-action-session.md) — sequential actions and controlled invalidation
 - [18 · NPC identification and dialogue](18-npc-dialogue.md) — config-resolved NPCs and an observed conversation
+- [19 · Inventory and equipment](19-inventory-equipment.md) — observed inventories, wield and remove
+- `tools/headless-experiment/demos/inventory-identify.mjs` observes inventories read-only, and `demos/equip.mjs` wields or removes one named item and checks the result. Both need the directory written by `fetch-config-assets.py`. See [19](19-inventory-equipment.md).
+- `tools/headless-experiment/demos/validate-config.mjs` decodes every definition in the verified configuration and reports any record that does not parse. See [19](19-inventory-equipment.md).
+- `tools/headless-experiment/demos/survey-definitions.mjs` summarizes the option vocabulary and unusual text in the verified configuration, and `tools/headless-experiment/item-actions.mjs` builds the numbered action list and examine text. See [19](19-inventory-equipment.md).
