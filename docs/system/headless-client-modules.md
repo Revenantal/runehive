@@ -2,7 +2,7 @@
 
 [Project overview](../../README.md) · [LostCity and the Headless Client](lostcity-and-headless-client.md) · Built in: <!-- built-in -->[M2](../milestones/headless-client.md)<!-- /built-in -->
 
-**Status: concept, not a specification.** This describes the intended shape of the durable headless client so humans and agents share one vocabulary. Method names are illustrative. Boundaries are examples, not strict limits, and will be settled when the client is formally planned. The experimental code in `tools/headless-experiment/` does not follow this layout.
+**Status: concept, not a specification.** This describes the intended shape of the durable headless client so humans and agents share one vocabulary. Method names are illustrative. Boundaries are examples, not strict limits, and will be settled when the client is formally planned. The experimental code in `tools/headless-experiment/` does not follow this layout. The proposed [engine blueprint](headless-client/README.md) adds UML-style diagrams and script examples; [end-to-end scenarios](headless-client/examples/plans.md) show how the pieces might work together.
 
 ## Two audiences
 
@@ -15,7 +15,7 @@ A script author never needs to know about sessions, packets, collision data or t
 
 ## Layers
 
-Each layer calls only the layers above it in this list. Nothing calls downward in the other direction.
+The list shows a conceptual stack, not a settled call graph. Requests generally flow from the script surface toward protocol; decoded observations flow back toward state and the script. Navigation and interaction must coordinate through the action coordinator rather than issuing overlapping actions.
 
 ```text
 Script surface      what a script can use (moveTo, navigateTo, state, interact)
@@ -30,18 +30,28 @@ An **action coordinator** sits beside Navigation and Interaction. It makes sure 
 
 ## Layout and naming
 
-Modules live in an `engine/` folder inside the headless-client package, one subfolder each:
+The agreed starting direction is a flat layout under the package source directory. These paths are a plan, not existing modules; create them when their first implemented slice needs them:
 
 ```text
-engine/
-  session/
-  world-state/
-  interaction/
-  navigation/
-  coordinator/
+packages/headless-client/
+  README.md
+  src/
+    index.ts        Public API exports
+    session/        Connection and session lifecycle
+    protocol/       Packet framing, encoding and decoding
+    state/          Observed player, world and interfaces
+    actions/        Action coordination and supported interactions
+    navigation/     Movement and route planning
+    api/            Developer- and script-facing helpers
+  docs/             Documentation for implemented APIs only
+  tests/            Package unit tests, subject to test discovery
 ```
 
-Folders use plain names. The word "engine" is already used by LostCity's server (`lostcity/engine`), so do not call the modules or classes "the engine" in prose, and do not assume a `...Engine` suffix on class names. Class naming is undecided. The exact package path is decided during formal planning.
+The coordinator and interaction responsibilities described below live under `actions/`, not separate top-level packages. The `api/` layer delegates to shared observed state and coordinated actions rather than maintaining its own copy. Credentials and process lifecycle remain with the supervisor; goal selection and AI decisions remain outside this package.
+
+The durable client code and its implemented usage documentation belong under `packages/headless-client/`; its package API reference and detailed per-method developer docs will be built under the package's `docs/` alongside implemented methods. Planned methods are not listed as available in package documentation. The [proposed API overview](headless-client/api-plan.md), broader project design and research remain in the root `docs/` tree. Package-level unit tests belong with the package code under repository testing standards; cross-package integration and live gameplay tests remain in their designated root test areas. The precise placement and discovery of package tests must be confirmed as implementation is planned.
+
+Folders use plain names. The word "engine" is already used by LostCity's server (`lostcity/engine`), so do not assume an `...Engine` suffix on class names. Exact class names and deeper subpaths remain open.
 
 ## Modules
 
@@ -87,7 +97,7 @@ Inventory, equipment and dialogue may become separate modules. Observed inventor
 
 ### Approach before acting
 
-The server does not find routes for players. A request to chop a tree from a distance is refused ("I can't reach that!") whenever a straight approach is blocked, even though a path exists, and the same request succeeds when the client first sends its own route to the object using the operation-click walk, as the browser client does ([20](../research/headless-client/20-world-object-tree.md)). So acting on something is: plan a route to a tile beside it, send the route with the operation-click walk, then send the interaction request, and watch for the outcome. A refusal like this is evidence that the client did not send a route, never evidence that the object is unreachable. Where the approach lives (inside an interaction call, or in the script) and how long a leg may be are left for formal planning; a single packet carries at most 24 corner points of up to 127 tiles each.
+A distant tree request was refused with "I can't reach that!" in the tested case; a client-planned operation-click route followed by the interaction succeeded in a separate case ([20](../research/headless-client/20-world-object-tree.md)). This supports planning and sending an approach before some interactions, not a universal rule about the server's routing or proof that a refused target is unreachable. Where the approach lives (inside an interaction call, or in the script) remains open. The experiment's packet format supports up to 24 relative waypoints; practical reach and routing limits are not generally established.
 
 ### What navigation has been shown to need
 
@@ -112,18 +122,15 @@ Even `moveTo` confirms arrival before reporting it. It does not merely send a re
 
 ## The script surface
 
-A script is a short function, for example `main`, that receives what it may use and nothing else. It has no imports, login, host settings, packet handling or logging.
+A script is a short body with supplied capabilities and nothing else. It has no imports, login, host settings, packet handling or logging. The following is illustrative, not an implemented API:
 
 ```js
-export async function main({ state, moveTo, navigateTo }) {
-  const start = state.position();
-  if (!start) return { outcome: 'unknown', reason: 'position-unknown' };
+const start = state.position();
+if (start.status !== 'known') return { status: 'unknown', reason: 'position-unknown' };
 
-  const result = await navigateTo({ x: 3222, z: 3219, level: 0 });
-  if (result.outcome !== 'completed') return result;
-
-  return moveTo(start);
-}
+const result = await navigateTo(task.destination);
+if (result.status !== 'completed') return result;
+return moveTo(start.value);
 ```
 
 The script author learns only: state questions, `moveTo`, `navigateTo`, and interactions. Everything below is hidden. The exact surface is decided in formal planning. How generated scripts are isolated and limited is a separate design that needs its own review; see [16](../research/headless-client/16-move-a-to-b.md#observations-and-open-concerns).

@@ -1,5 +1,5 @@
-# Headless Client
+# Headless client
 
-Protocol, sessions, game state, and player actions for Revision 274.
+This package is reserved for the TypeScript ordinary-player client. It does not yet expose an implemented client API.
 
-Placeholder so this directory exists on a fresh clone. Built in [M2](../../docs/milestones/headless-client.md).
+Active design and proposed API methods are maintained outside this package in the [headless client design](../../docs/system/headless-client/README.md) and [API plan](../../docs/system/headless-client/api-plan.md). Once functionality is implemented, its usage and developer documentation will live in this package alongside the code.
