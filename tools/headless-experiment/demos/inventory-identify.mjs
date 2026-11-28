@@ -6,6 +6,7 @@ import { decodeObjectDefinition } from '../object-definitions.mjs';
 import { decodeInterfaces } from '../interface-components.mjs';
 import { examineText, listItemActions } from '../item-actions.mjs';
 import { LOGOUT_BUTTON_COMPONENT } from '../logout.mjs';
+import { createCapture } from '../capture.mjs';
 
 // Usage: node inventory-identify.mjs <directory containing verified obj.idx, obj.dat and interface.dat>
 const directory = process.argv[2];
@@ -21,6 +22,10 @@ const inventories = createInventoryObserver({
   },
 });
 const events = [];
+// Optional: RUNEHIVE_CAPTURE_FILE saves the inventory packets as a test fixture.
+const capture = createCapture({
+  names: ['UPDATE_INV_FULL', 'UPDATE_INV_PARTIAL', 'UPDATE_INV_STOP_TRANSMIT'],
+});
 let broken = false;
 const client = await login({
   account: process.env.RUNEHIVE_EXPERIMENT_ACCOUNT,
@@ -33,6 +38,7 @@ const client = await login({
     }
     try {
       state.apply(packet);
+      capture.record(packet);
       const event = inventories.apply(packet);
       if (event) events.push(event);
     } catch {
@@ -92,6 +98,7 @@ if (client.kind !== 'accepted' || client.staffLevel !== 0) {
       items,
     };
   });
+  if (process.env.RUNEHIVE_CAPTURE_FILE) capture.write(process.env.RUNEHIVE_CAPTURE_FILE);
   console.log(JSON.stringify({ broken, updates: events.length, report }, null, 1));
   if (!client.socket.destroyed) {
     client.sendButton(LOGOUT_BUTTON_COMPONENT);

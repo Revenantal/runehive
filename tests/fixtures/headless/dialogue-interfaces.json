@@ -1,0 +1,235 @@
+{
+  "components": [
+    {
+      "id": 4882,
+      "layerId": 4882,
+      "type": 0,
+      "buttonType": 0,
+      "children": [4883, 4884, 4885, 4886],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 4883,
+      "layerId": 4882,
+      "type": 6,
+      "buttonType": 0,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 4884,
+      "layerId": 4882,
+      "type": 4,
+      "buttonType": 0,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 4885,
+      "layerId": 4882,
+      "type": 4,
+      "buttonType": 0,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 4886,
+      "layerId": 4882,
+      "type": 4,
+      "buttonType": 6,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 2469,
+      "layerId": 2469,
+      "type": 0,
+      "buttonType": 0,
+      "children": [2470, 2471, 2472, 2473, 2476, 2479],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 2470,
+      "layerId": 2469,
+      "type": 4,
+      "buttonType": 0,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 2471,
+      "layerId": 2469,
+      "type": 4,
+      "buttonType": 1,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 2472,
+      "layerId": 2469,
+      "type": 4,
+      "buttonType": 1,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 2473,
+      "layerId": 2469,
+      "type": 4,
+      "buttonType": 1,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 2476,
+      "layerId": 2469,
+      "type": 0,
+      "buttonType": 0,
+      "children": [2474, 2475],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 2474,
+      "layerId": 2469,
+      "type": 5,
+      "buttonType": 0,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 2475,
+      "layerId": 2469,
+      "type": 5,
+      "buttonType": 0,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 2479,
+      "layerId": 2469,
+      "type": 0,
+      "buttonType": 0,
+      "children": [2477, 2478],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 2477,
+      "layerId": 2469,
+      "type": 5,
+      "buttonType": 0,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 2478,
+      "layerId": 2469,
+      "type": 5,
+      "buttonType": 0,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 968,
+      "layerId": 968,
+      "type": 0,
+      "buttonType": 0,
+      "children": [969, 970, 971, 972],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 969,
+      "layerId": 968,
+      "type": 6,
+      "buttonType": 0,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 970,
+      "layerId": 968,
+      "type": 4,
+      "buttonType": 0,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 971,
+      "layerId": 968,
+      "type": 4,
+      "buttonType": 0,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    },
+    {
+      "id": 972,
+      "layerId": 968,
+      "type": 4,
+      "buttonType": 6,
+      "children": [],
+      "text": null,
+      "objectOptions": false,
+      "objectUse": false,
+      "options": []
+    }
+  ]
+}

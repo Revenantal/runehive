@@ -1,0 +1,64 @@
+{
+  "packets": [
+    {
+      "name": "IF_SETTEXT",
+      "payload": "131448616e730a"
+    },
+    {
+      "name": "IF_SETTEXT",
+      "payload": "131548656c6c6f2e20576861742061726520796f7520646f696e6720686572653f0a"
+    },
+    {
+      "name": "IF_OPENCHAT",
+      "payload": "1312"
+    },
+    {
+      "name": "IF_SETTEXT",
+      "payload": "09a653656c65637420616e204f7074696f6e0a"
+    },
+    {
+      "name": "IF_SETTEXT",
+      "payload": "09a749276d206c6f6f6b696e6720666f722077686f6576657220697320696e20636861726765206f66207468697320706c6163652e0a"
+    },
+    {
+      "name": "IF_SETTEXT",
+      "payload": "09a849206861766520636f6d6520746f206b696c6c2065766572796f6e6520696e207468697320636173746c65210a"
+    },
+    {
+      "name": "IF_SETTEXT",
+      "payload": "09a94920646f6e2774206b6e6f772e2049276d206c6f73742e20576865726520616d20493f0a"
+    },
+    {
+      "name": "IF_OPENCHAT",
+      "payload": "09a5"
+    },
+    {
+      "name": "IF_SETTEXT",
+      "payload": "03ca232323230a"
+    },
+    {
+      "name": "IF_SETTEXT",
+      "payload": "03cb49276d206c6f6f6b696e6720666f722077686f6576657220697320696e20636861726765206f66207468697320706c6163652e0a"
+    },
+    {
+      "name": "IF_OPENCHAT",
+      "payload": "03c8"
+    },
+    {
+      "name": "IF_SETTEXT",
+      "payload": "131448616e730a"
+    },
+    {
+      "name": "IF_SETTEXT",
+      "payload": "131557686f2c207468652044756b653f204865277320696e206869732073747564792c206f6e2074686520666972737420666c6f6f722e0a"
+    },
+    {
+      "name": "IF_OPENCHAT",
+      "payload": "1312"
+    },
+    {
+      "name": "IF_CLOSE",
+      "payload": ""
+    }
+  ]
+}

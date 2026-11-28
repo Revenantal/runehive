@@ -6,6 +6,7 @@ import { decodeNpcDefinition } from '../npc-definitions.mjs';
 import { decodeInterfaces } from '../interface-components.mjs';
 import { createDialogueObserver } from '../dialogue-observer.mjs';
 import { LOGOUT_BUTTON_COMPONENT } from '../logout.mjs';
+import { createCapture } from '../capture.mjs';
 
 // Usage: node npc-talk.mjs <directory containing verified npc.idx, npc.dat and interface.dat> [exact NPC name] [choice number to click once]
 const directory = process.argv[2];
@@ -26,6 +27,12 @@ const state = createInitialState();
 const npcs = createNpcObserver();
 const started = performance.now();
 const events = [];
+// Optional: RUNEHIVE_CAPTURE_FILE saves dialogue packets as a test fixture, with the own name masked.
+const capture = createCapture({
+  names: ['IF_OPENCHAT', 'IF_SETTEXT', 'IF_CLOSE'],
+  ownName: process.env.RUNEHIVE_EXPERIMENT_ACCOUNT ?? '',
+  limitPerName: 200,
+});
 const pages = [];
 const names = new Set();
 let visible = [],
@@ -53,6 +60,7 @@ const client = await login({
     }
     try {
       state.apply(packet);
+      if (requested) capture.record(packet);
       if (packet.name === 'NPC_INFO') visible = npcs.apply(packet.payload, state.state.position);
       if (requested && !['PLAYER_INFO', 'NPC_INFO'].includes(packet.name)) names.add(packet.name);
       if (packet.name === 'MESSAGE_GAME' && requested)
@@ -178,6 +186,7 @@ if (client.kind !== 'accepted' || client.staffLevel !== 0) {
       client.socket.destroy();
     }
   }
+  if (process.env.RUNEHIVE_CAPTURE_FILE) capture.write(process.env.RUNEHIVE_CAPTURE_FILE);
   console.log(
     JSON.stringify(
       {
