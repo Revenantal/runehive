@@ -33,6 +33,7 @@ export function decodeLocationDefinition(index, data, id, { includeText = false 
   const definition = { width: 1, length: 1, blockwalk: true, blockrange: true, active: false };
   if (includeText) {
     definition.name = null;
+    definition.description = null;
     definition.options = Array(5).fill(null);
   }
   let active = null;
@@ -57,6 +58,7 @@ export function decodeLocationDefinition(index, data, id, { includeText = false 
     } else if (opcode === 2 || opcode === 3 || (opcode >= 30 && opcode < 39)) {
       const value = string();
       if (includeText && opcode === 2) definition.name = value;
+      if (includeText && opcode === 3) definition.description = value;
       if (opcode >= 30) {
         actions = true;
         if (includeText && opcode < 35 && value.toLowerCase() !== 'hidden')

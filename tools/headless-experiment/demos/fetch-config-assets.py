@@ -2,7 +2,7 @@
 
 Usage: python3 -I fetch-config-assets.py <host> <empty-output-directory>
 
-Writes npc.idx, npc.dat, loc.idx, loc.dat and interface.dat. The server's /crc
+Writes npc, loc and obj .idx/.dat files and interface.dat. The server's /crc
 response lists each archive's checksum; every downloaded archive is rejected unless
 its CRC matches. Nothing is preloaded: this is the same data an ordinary client reads.
 """
@@ -70,6 +70,8 @@ for target, source in [
     ('npc.dat', item(config, 'npc.dat')),
     ('loc.idx', item(config, 'loc.idx')),
     ('loc.dat', item(config, 'loc.dat')),
+    ('obj.idx', item(config, 'obj.idx')),
+    ('obj.dat', item(config, 'obj.dat')),
     ('interface.dat', item(interface, 'data')),
 ]:
     with open(os.path.join(out, target), 'wb') as handle:

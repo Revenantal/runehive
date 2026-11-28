@@ -169,6 +169,28 @@ export async function login({
       for (const packet of packets.push(chunk)) onPacket(packet);
       if (packets.broken) onPacket({ broken: packets.broken });
     });
+    /** Validates and writes one six-byte item action: item id, slot and component. */
+    function sendItemAction(opcodes, { item, slot, component, option }) {
+      if (
+        ![item, slot, component].every((n) => Number.isInteger(n) && n >= 0 && n <= 0xffff) ||
+        !Number.isInteger(option) ||
+        option < 1 ||
+        option > 5
+      )
+        throw new Error('INVALID_ITEM_ACTION');
+      socket.write(
+        Buffer.from([
+          (opcodes[option - 1] + cipher.nextInt) & 255,
+          item >> 8,
+          item & 255,
+          slot >> 8,
+          slot & 255,
+          component >> 8,
+          component & 255,
+        ]),
+      );
+    }
+
     return {
       kind: 'accepted',
       staffLevel: flags[0],
@@ -266,6 +288,14 @@ export async function login({
         socket.write(
           Buffer.from([(opcodes[option - 1] + cipher.nextInt) & 255, index >> 8, index & 255]),
         );
+      },
+      /** Sends an item option from an inventory component: item id, slot and component are server-reported. */
+      sendHeldOption({ item, slot, component, option }) {
+        sendItemAction([185, 2, 123, 216, 42], { item, slot, component, option });
+      },
+      /** Sends a component-level inventory button, such as removing a worn item. */
+      sendInventoryButton({ item, slot, component, option }) {
+        sendItemAction([74, 82, 239, 179, 46], { item, slot, component, option });
       },
       /** Sends the dialogue-continue packet for a client-identified continue component. */
       sendContinue(component) {

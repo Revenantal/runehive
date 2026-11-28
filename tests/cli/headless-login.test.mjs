@@ -262,3 +262,28 @@ test('location interaction selects the requested protocol option', async () => {
       /INVALID_LOCATION_INTERACTION/,
     );
 });
+
+test('held-item options and inventory buttons carry item, slot and component', async () => {
+  const socket = new FakeSocket([2, 0, 1]);
+  const result = await login({
+    account,
+    fetcher,
+    connect: () => socket,
+    random: () => Buffer.alloc(8),
+  });
+  result.sendHeldOption({ item: 1205, slot: 3, component: 3214, option: 1 });
+  assert.equal(socket.writes[2][0], (185 + 243) & 255);
+  assert.deepEqual([...socket.writes[2]].slice(1), [4, 181, 0, 3, 12, 142]);
+  result.sendInventoryButton({ item: 1205, slot: 0, component: 1688, option: 1 });
+  assert.deepEqual([...socket.writes[3]].slice(1), [4, 181, 0, 0, 6, 152]);
+  for (const bad of [
+    { item: -1, slot: 0, component: 1, option: 1 },
+    { item: 1, slot: 65536, component: 1, option: 1 },
+    { item: 1, slot: 0, component: 1, option: 0 },
+    { item: 1, slot: 0, component: 1, option: 6 },
+  ]) {
+    assert.throws(() => result.sendHeldOption(bad), /INVALID_ITEM_ACTION/);
+    assert.throws(() => result.sendInventoryButton(bad), /INVALID_ITEM_ACTION/);
+  }
+  assert.equal(socket.writes.length, 4);
+});

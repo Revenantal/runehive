@@ -3,6 +3,7 @@ import { login } from '../login.mjs';
 import { createInitialState } from '../initial-state.mjs';
 import { createNpcObserver } from '../npc-observer.mjs';
 import { decodeNpcDefinition } from '../npc-definitions.mjs';
+import { examineText, numberOptions } from '../item-actions.mjs';
 import { LOGOUT_BUTTON_COMPONENT } from '../logout.mjs';
 
 // Usage: node npc-identify.mjs <directory containing verified npc.idx and npc.dat>
@@ -58,7 +59,8 @@ if (client.kind !== 'accepted' || client.staffLevel !== 0) {
       index: npc.index,
       typeId: npc.typeId,
       name: definition?.name ?? 'unknown',
-      options: definition ? definition.options.filter(Boolean) : 'unknown',
+      options: definition ? numberOptions(definition.options) : 'unknown',
+      examine: definition ? examineText(definition) : 'unknown',
       x: npc.x,
       z: npc.z,
       distance:

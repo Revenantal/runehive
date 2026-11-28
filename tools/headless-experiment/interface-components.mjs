@@ -34,8 +34,21 @@ export function decodeInterfaces(data) {
       id = g2();
     }
     const type = g1();
-    const component = { id, layerId: layer, type, buttonType: g1(), children: [], text: null };
-    take(2 + 2 + 2 + 1); // client code, width, height, transparency
+    const component = {
+      id,
+      layerId: layer,
+      type,
+      buttonType: g1(),
+      children: [],
+      text: null,
+      objectOptions: false,
+      objectUse: false,
+      options: [],
+    };
+    take(2); // client code
+    component.width = g2();
+    component.height = g2();
+    take(1); // transparency
     if (g1() !== 0) g1(); // over-layer
     for (let i = g1(); i > 0; i--) take(3); // script comparators
     for (let i = g1(); i > 0; i--) take(g2() * 2); // scripts
@@ -48,14 +61,17 @@ export function decodeInterfaces(data) {
     }
     if (type === 1) take(3);
     if (type === 2) {
-      take(4 + 2);
+      take(1); // swap
+      component.objectOptions = g1() === 1;
+      component.objectUse = g1() === 1;
+      take(1 + 2); // replace flag and margins
       for (let i = 0; i < 20; i++) {
         if (g1() === 1) {
           take(4);
           string();
         }
       }
-      for (let i = 0; i < 5; i++) string();
+      component.options = Array.from({ length: 5 }, string).map((text) => text || null);
     }
     if (type === 3) take(1);
     if (type === 4 || type === 1) take(3);
