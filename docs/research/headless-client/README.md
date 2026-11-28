@@ -50,6 +50,7 @@ The following focused drivers are retained for reference and reuse, not as produ
 - `tools/headless-experiment/demos/door-ladder-demo.mjs` exercises a particular main-world door and ladder. See [15](15-main-world-interactions.md) for its prerequisites, observations and limitations.
 - `tools/headless-experiment/demos/move-a-to-b.mjs` is the explicit one-move baseline. `demos/programs/move-to-point.mjs` is the import-free action-only comparison, statically loaded by `demos/run-move-program.mjs`. Both require pre-acquired validated region assets, and the host is not a sandbox for generated scripts. See [16](16-move-a-to-b.md).
 - `tools/headless-experiment/demos/run-round-trip.mjs` runs a trusted two-action script in `normal` mode or the synthetic `invalidate` mode. Both modes require separately prepared and verified `/tmp/abmove-*.bin` assets and the documented starting position; see [17](17-multi-action-session.md).
+- `tools/headless-experiment/demos/fetch-config-assets.py` fetches and verifies NPC, location and interface configuration; `demos/npc-identify.mjs` and `demos/npc-talk.mjs` use it for the read-only and one-conversation stages. See [18](18-npc-dialogue.md).
 
 Some earlier one-off probes were deleted before the decision to retain scripts; their findings are preserved in the experiment notes, but the deleted drivers are not claimed as retained.
 
@@ -76,3 +77,4 @@ Run from the repository root so `.runehive/` is Git-ignored. Logs are local diag
 - [15 · Main-world navigation interactions](15-main-world-interactions.md) — door and ladder experiments
 - [16 · One A-to-B movement script](16-move-a-to-b.md) — baseline before simplifying the script API
 - [17 · Multiple actions in one session](17-multi-action-session.md) — sequential actions and controlled invalidation
+- [18 · NPC identification and dialogue](18-npc-dialogue.md) — config-resolved NPCs and an observed conversation

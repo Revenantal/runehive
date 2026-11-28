@@ -81,7 +81,7 @@ This module stores observations. Whether something is an "enemy", "edible" or "v
 
 **Does not:** plan routes. It reports what it observed afterwards, not what it hoped for.
 
-Inventory, equipment and dialogue may become separate modules. The upcoming experiments will show whether they should.
+Inventory, equipment and dialogue may become separate modules. Dialogue is the strongest candidate: quests and conversations are driven by choice menus, so the open dialogue (speaker, text, and either a continue or a list of choices) is likely its own state, with `continue()` and `choose(n)` actions ([18](../research/headless-client/18-npc-dialogue.md)).
 
 ### Navigation
 
