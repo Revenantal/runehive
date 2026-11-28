@@ -287,3 +287,72 @@ test('held-item options and inventory buttons carry item, slot and component', a
   }
   assert.equal(socket.writes.length, 4);
 });
+
+test('ground options and use-item packets carry validated 16-bit values', async () => {
+  const socket = new FakeSocket([2, 0, 1]);
+  const result = await login({
+    account,
+    fetcher,
+    connect: () => socket,
+    random: () => Buffer.alloc(8),
+  });
+  result.sendGroundOption({ x: 3222, z: 3215, id: 1511, option: 4 });
+  assert.equal(socket.writes[2][0], (62 + 243) & 255);
+  assert.deepEqual([...socket.writes[2]].slice(1), [12, 150, 12, 143, 5, 231]);
+  result.sendUseOnItem({
+    item: 590,
+    slot: 1,
+    component: 3214,
+    useItem: 1511,
+    useSlot: 4,
+    useComponent: 3214,
+  });
+  assert.deepEqual([...socket.writes[3]].slice(1), [2, 78, 0, 1, 12, 142, 5, 231, 0, 4, 12, 142]);
+  result.sendUseOnGroundItem({
+    x: 3222,
+    z: 3215,
+    id: 1511,
+    useItem: 590,
+    useSlot: 1,
+    useComponent: 3214,
+  });
+  assert.equal(socket.writes[4].length, 13);
+  assert.throws(
+    () => result.sendGroundOption({ x: 1, z: 1, id: 1, option: 6 }),
+    /INVALID_GROUND_OPTION/,
+  );
+  assert.throws(
+    () =>
+      result.sendUseOnItem({
+        item: -1,
+        slot: 0,
+        component: 0,
+        useItem: 0,
+        useSlot: 0,
+        useComponent: 0,
+      }),
+    /INVALID_USE_ACTION/,
+  );
+  assert.equal(socket.writes.length, 5);
+});
+
+test('an operation-click walk uses its own opcode and the same path layout', async () => {
+  const socket = new FakeSocket([2, 0, 1]);
+  const result = await login({
+    account,
+    fetcher,
+    connect: () => socket,
+    random: () => Buffer.alloc(8),
+  });
+  result.sendWalk({
+    startX: 3222,
+    startZ: 3217,
+    steps: [
+      [0, 5],
+      [3, 5],
+    ],
+    opClick: true,
+  });
+  assert.equal(socket.writes[2][0], (138 + 243) & 255);
+  assert.deepEqual([...socket.writes[2]].slice(1), [9, 0, 12, 150, 12, 145, 0, 5, 3, 5]);
+});

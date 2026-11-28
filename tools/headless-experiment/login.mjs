@@ -169,6 +169,15 @@ export async function login({
       for (const packet of packets.push(chunk)) onPacket(packet);
       if (packets.broken) onPacket({ broken: packets.broken });
     });
+    /** Writes an opcode followed by six validated 16-bit values. */
+    function writeUse(opcode, values) {
+      if (!values.every((n) => Number.isInteger(n) && n >= 0 && n <= 0xffff))
+        throw new Error('INVALID_USE_ACTION');
+      socket.write(
+        Buffer.from([(opcode + cipher.nextInt) & 255, ...values.flatMap((n) => [n >> 8, n & 255])]),
+      );
+    }
+
     /** Validates and writes one six-byte item action: item id, slot and component. */
     function sendItemAction(opcodes, { item, slot, component, option }) {
       if (
@@ -216,7 +225,7 @@ export async function login({
         socket.write(Buffer.from([(125 + cipher.nextInt) & 255, ...body]));
       },
       /** Sends one ISAAC-encoded walk request: a start tile and up to 24 waypoint offsets from it. */
-      sendWalk({ startX, startZ, steps, run = false }) {
+      sendWalk({ startX, startZ, steps, run = false, opClick = false }) {
         const valid =
           Number.isInteger(startX) &&
           startX >= 0 &&
@@ -245,7 +254,10 @@ export async function login({
           startZ & 255,
           ...steps.flatMap(([dx, dz]) => [dx & 255, dz & 255]),
         ];
-        socket.write(Buffer.from([(207 + cipher.nextInt) & 255, payload.length, ...payload]));
+        // The operation-click variant keeps a pending interaction; a plain walk cancels it.
+        socket.write(
+          Buffer.from([((opClick ? 138 : 207) + cipher.nextInt) & 255, payload.length, ...payload]),
+        );
       },
       /** Sends one of the five client-visible interaction options for a location. */
       sendLocationOption({ x, z, id, option }) {
@@ -296,6 +308,36 @@ export async function login({
       /** Sends a component-level inventory button, such as removing a worn item. */
       sendInventoryButton({ item, slot, component, option }) {
         sendItemAction([74, 82, 239, 179, 46], { item, slot, component, option });
+      },
+      /** Sends one of the five ground-item options for an item at known coordinates. */
+      sendGroundOption({ x, z, id, option }) {
+        const opcodes = [247, 169, 108, 62, 117];
+        if (
+          ![x, z, id].every((n) => Number.isInteger(n) && n >= 0 && n <= 0xffff) ||
+          !Number.isInteger(option) ||
+          option < 1 ||
+          option > 5
+        )
+          throw new Error('INVALID_GROUND_OPTION');
+        socket.write(
+          Buffer.from([
+            (opcodes[option - 1] + cipher.nextInt) & 255,
+            x >> 8,
+            x & 255,
+            z >> 8,
+            z & 255,
+            id >> 8,
+            id & 255,
+          ]),
+        );
+      },
+      /** Sends "use item on item" for two server-reported inventory slots. */
+      sendUseOnItem({ item, slot, component, useItem, useSlot, useComponent }) {
+        writeUse(136, [item, slot, component, useItem, useSlot, useComponent]);
+      },
+      /** Sends "use inventory item on a ground item" at known coordinates. */
+      sendUseOnGroundItem({ x, z, id, useItem, useSlot, useComponent }) {
+        writeUse(39, [x, z, id, useItem, useSlot, useComponent]);
       },
       /** Sends the dialogue-continue packet for a client-identified continue component. */
       sendContinue(component) {

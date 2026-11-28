@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   examineText,
+  listGroundActions,
   listItemActions,
   numberOptions,
 } from '../../tools/headless-experiment/item-actions.mjs';
@@ -77,4 +78,24 @@ test('numbered options keep their protocol positions', () => {
     { label: 'Talk to', option: 1 },
     { label: 'Trade', option: 3 },
   ]);
+});
+
+test('ground items offer a client-supplied Take unless the item defines option three', () => {
+  const logs = { name: 'Logs', options: [null, null, null, 'Light', null] };
+  assert.deepEqual(
+    listGroundActions({ definition: logs }).map((a) => [a.label, a.option, a.source]),
+    [
+      ['Take', 3, 'client'],
+      ['Light', 4, 'item'],
+      ['Examine', null, 'client'],
+    ],
+  );
+  const custom = { name: 'Odd', options: [null, null, 'Grab', null, null] };
+  assert.deepEqual(
+    listGroundActions({ definition: custom }).map((a) => [a.label, a.option]),
+    [
+      ['Grab', 3],
+      ['Examine', null],
+    ],
+  );
 });

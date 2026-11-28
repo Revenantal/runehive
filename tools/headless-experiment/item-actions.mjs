@@ -32,3 +32,18 @@ export function listItemActions({ definition, component }) {
 export function numberOptions(labels) {
   return labels.flatMap((label, index) => (label ? [{ label, option: index + 1 }] : []));
 }
+
+/**
+ * Lists the options the client offers for an item lying on the ground, numbered as the protocol
+ * numbers them. The client supplies Take as option three when the definition has no third option.
+ */
+export function listGroundActions({ definition }) {
+  const actions = [];
+  for (let op = 0; op < 5; op++) {
+    const label = definition.options[op];
+    if (label) actions.push({ label, option: op + 1, source: 'item' });
+    else if (op === 2) actions.push({ label: 'Take', option: 3, source: 'client' });
+  }
+  actions.push({ label: 'Examine', option: null, source: 'client', local: true });
+  return actions;
+}

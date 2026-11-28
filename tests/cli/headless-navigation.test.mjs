@@ -99,3 +99,24 @@ test('L walls block both adjacent edges without blocking the tile', () => {
   assert.ok(map.edges[9 * 64 + 10] & 4);
   assert.ok(map.edges[10 * 64 + 11] & 8);
 });
+
+test('route compression keeps only the corners and rejects non-cardinal steps', async () => {
+  const { compressRoute } = await import('../../tools/headless-experiment/navigation.mjs');
+  const start = { x: 0, z: 0 };
+  const route = [
+    { x: 1, z: 0 },
+    { x: 2, z: 0 },
+    { x: 3, z: 0 },
+    { x: 3, z: 1 },
+    { x: 3, z: 2 },
+    { x: 4, z: 2 },
+  ];
+  assert.deepEqual(compressRoute(start, route), [
+    { x: 3, z: 0 },
+    { x: 3, z: 2 },
+    { x: 4, z: 2 },
+  ]);
+  assert.deepEqual(compressRoute(start, []), []);
+  assert.throws(() => compressRoute(start, [{ x: 1, z: 1 }]), /ROUTE_STEP_NOT_CARDINAL/);
+  assert.throws(() => compressRoute(start, [{ x: 'a', z: 0 }]), /INVALID_ROUTE_POINT/);
+});

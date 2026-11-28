@@ -15,7 +15,7 @@ const ZONE_NAMES = new Set([
 const ZONE_OPS = new Map([...SERVER_PACKETS].filter(([, value]) => ZONE_NAMES.has(value.name)));
 
 /** Decodes zone location changes relative to a known browser build-area origin and level. */
-export function createZoneObserver({ baseX, baseZ, level }) {
+export function createZoneObserver({ baseX, baseZ, level, includeObjects = false }) {
   if (
     !Number.isInteger(baseX) ||
     !Number.isInteger(baseZ) ||
@@ -34,10 +34,22 @@ export function createZoneObserver({ baseX, baseZ, level }) {
   /** Extracts collision-relevant location operations and flags timed changes. */
   function operation(name, payload, origin) {
     if (!origin) throw new Error('UNKNOWN_ZONE_ORIGIN');
-    if (name !== 'LOC_ADD_CHANGE' && name !== 'LOC_DEL' && name !== 'P_LOCMERGE') return null;
+    const isObject = name.startsWith('OBJ_');
+    if (isObject && !includeObjects) return null;
+    if (!isObject && name !== 'LOC_ADD_CHANGE' && name !== 'LOC_DEL' && name !== 'P_LOCMERGE')
+      return null;
     const x = origin.x + ((payload[0] >> 4) & 7),
       z = origin.z + (payload[0] & 7);
     if (x >= 104 || z >= 104) throw new Error('ZONE_TILE_OUTSIDE_BUILD');
+    if (isObject) {
+      const at = { level, x: baseX + x, z: baseZ + z };
+      const short = (offset) => payload[offset] * 256 + payload[offset + 1];
+      if (name === 'OBJ_ADD') return { kind: 'object-add', ...at, id: short(1), count: short(3) };
+      if (name === 'OBJ_DEL') return { kind: 'object-remove', ...at, id: short(1) & 0x7fff };
+      if (name === 'OBJ_COUNT')
+        return { kind: 'object-count', ...at, id: short(1) & 0x7fff, from: short(3), to: short(5) };
+      return { kind: 'object-reveal', ...at, id: short(1), count: short(3), owner: short(5) };
+    }
     if (name === 'P_LOCMERGE')
       return { kind: 'unknown-timed-location-change', level, x: baseX + x, z: baseZ + z };
     const shape = payload[1] >> 2;

@@ -138,3 +138,28 @@ export function findConservativeRoute(grid, start, target) {
   route.reverse();
   return route;
 }
+
+/**
+ * Reduces a tile-by-tile cardinal route (the tiles after the start) to its corner points, so a
+ * long straight stretch becomes one waypoint. The server walks straight lines between waypoints.
+ */
+export function compressRoute(start, route) {
+  const valid = (p) => Number.isInteger(p?.x) && Number.isInteger(p?.z);
+  if (!valid(start) || !Array.isArray(route) || !route.every(valid))
+    throw new Error('INVALID_ROUTE_POINT');
+  const corners = [];
+  let previous = start;
+  for (let i = 0; i < route.length; i++) {
+    const current = route[i];
+    const dx = Math.sign(current.x - previous.x),
+      dz = Math.sign(current.z - previous.z);
+    if (Math.abs(current.x - previous.x) + Math.abs(current.z - previous.z) !== 1)
+      throw new Error('ROUTE_STEP_NOT_CARDINAL');
+    const next = route[i + 1];
+    const keeps =
+      !next || Math.sign(next.x - current.x) !== dx || Math.sign(next.z - current.z) !== dz;
+    if (keeps) corners.push(current);
+    previous = current;
+  }
+  return corners;
+}
