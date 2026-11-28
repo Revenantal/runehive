@@ -24,8 +24,10 @@ export function createInitialState() {
         const zoneX = p.readUInt16BE(0);
         const zoneZ = p.readUInt16BE(2);
         state.region = { zoneX, zoneZ, baseX: (zoneX - 6) * 8, baseZ: (zoneZ - 6) * 8 };
-        // Until the next local position update, the old coordinates may no longer be current.
-        state.position = null;
+        // A rebuild re-centres the loaded area but does not move the player: the browser client
+        // shifts every entity's local coordinates by the change in base so absolute positions are
+        // kept, and the server then sends only relative movement. A position already known stays
+        // known; a teleport still replaces it with the absolute position the server sends.
       } else if (packet.name === 'PLAYER_INFO') {
         const bits = new BitReader(p);
         if (!bits.read(1)) return;

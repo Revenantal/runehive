@@ -80,3 +80,62 @@ test('skill and energy values are recorded only when received', () => {
   assert.deepEqual(decoder.state.skills[3], { experience: 42, currentLevel: 10 });
   assert.equal(decoder.state.energy, 100);
 });
+
+test('a rebuild while walking keeps the absolute position, and a teleport replaces it', () => {
+  const decoder = createInitialState();
+  const rebuild = (zoneX, zoneZ) => {
+    const payload = Buffer.alloc(4);
+    payload.writeUInt16BE(zoneX, 0);
+    payload.writeUInt16BE(zoneZ, 2);
+    return { name: 'REBUILD_NORMAL', payload };
+  };
+  // A rebuild before any position is known leaves the position unknown.
+  decoder.apply(rebuild(386, 388));
+  assert.equal(decoder.state.position, null);
+  decoder.apply({
+    name: 'PLAYER_INFO',
+    payload: bits([
+      [1, 1],
+      [3, 2],
+      [0, 2],
+      [54, 7],
+      [50, 7],
+      [1, 1],
+      [0, 1],
+    ]),
+  });
+  const before = { ...decoder.state.position };
+  // Walking north moves the area centre; the player has not moved.
+  decoder.apply(rebuild(386, 396));
+  assert.deepEqual(decoder.state.position, before);
+  assert.equal(decoder.state.region.baseZ, (396 - 6) * 8);
+  // Later relative movement keeps counting from the retained absolute position.
+  decoder.apply({
+    name: 'PLAYER_INFO',
+    payload: bits([
+      [1, 1],
+      [1, 2],
+      [1, 3],
+      [0, 1],
+    ]),
+  });
+  assert.deepEqual(decoder.state.position, { ...before, z: before.z + 1 });
+  // A teleport inside the new area states the absolute position again.
+  decoder.apply({
+    name: 'PLAYER_INFO',
+    payload: bits([
+      [1, 1],
+      [3, 2],
+      [0, 2],
+      [10, 7],
+      [20, 7],
+      [1, 1],
+      [0, 1],
+    ]),
+  });
+  assert.deepEqual(decoder.state.position, {
+    level: 0,
+    x: 3094 - 54 + 10 + 0,
+    z: (396 - 6) * 8 + 20,
+  });
+});
