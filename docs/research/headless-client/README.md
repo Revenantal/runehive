@@ -79,6 +79,8 @@ Run from the repository root so `.runehive/` is Git-ignored. Logs are local diag
 - [17 · Multiple actions in one session](17-multi-action-session.md) — sequential actions and controlled invalidation
 - [18 · NPC identification and dialogue](18-npc-dialogue.md) — config-resolved NPCs and an observed conversation
 - [19 · Inventory and equipment](19-inventory-equipment.md) — observed inventories, wield and remove
+- [20 · World objects and ground items](20-world-object-tree.md) — chopping, dropping, picking up and lighting, and why the client must send its own route
 - `tools/headless-experiment/demos/inventory-identify.mjs` observes inventories read-only, and `demos/equip.mjs` wields or removes one named item and checks the result. Both need the directory written by `fetch-config-assets.py`. See [19](19-inventory-equipment.md).
 - `tools/headless-experiment/demos/validate-config.mjs` decodes every definition in the verified configuration and reports any record that does not parse. See [19](19-inventory-equipment.md).
 - `tools/headless-experiment/demos/survey-definitions.mjs` summarizes the option vocabulary and unusual text in the verified configuration, and `tools/headless-experiment/item-actions.mjs` builds the numbered action list and examine text. See [19](19-inventory-equipment.md).
+- `tools/headless-experiment/demos/fetch-map-assets.py` fetches and verifies one map region's ground and location files. `demos/chop-tree.mjs` (chop one tree, optionally route-first), `demos/logs-sequence.mjs` (drop, take and light) and `demos/reach-probe.mjs` (when a request is refused) use them. See [20](20-world-object-tree.md).

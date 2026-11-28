@@ -85,6 +85,10 @@ This module stores observations. Whether something is an "enemy", "edible" or "v
 
 Inventory, equipment and dialogue may become separate modules. Observed inventories are sparse and slot positions shift, so state should expose items by what they are, with the current slot reported by the latest update ([19](../research/headless-client/19-inventory-equipment.md)). Dialogue is the strongest candidate: quests and conversations are driven by choice menus, so the open dialogue (speaker, text, and either a continue or a list of choices) is likely its own state, with `continue()` and `choose(n)` actions ([18](../research/headless-client/18-npc-dialogue.md)).
 
+### Approach before acting
+
+The server does not find routes for players. A request to chop a tree from a distance is refused ("I can't reach that!") whenever a straight approach is blocked, even though a path exists, and the same request succeeds when the client first sends its own route to the object using the operation-click walk, as the browser client does ([20](../research/headless-client/20-world-object-tree.md)). So acting on something is: plan a route to a tile beside it, send the route with the operation-click walk, then send the interaction request, and watch for the outcome. A refusal like this is evidence that the client did not send a route, never evidence that the object is unreachable. Where the approach lives (inside an interaction call, or in the script) and how long a leg may be are left for formal planning; a single packet carries at most 24 corner points of up to 127 tiles each.
+
 ### Navigation
 
 **Owns:** moving the character.
