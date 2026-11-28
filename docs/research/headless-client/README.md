@@ -49,6 +49,7 @@ The following focused drivers are retained for reference and reuse, not as produ
 - `tools/headless-experiment/demos/random-walk-demo.mjs` chooses bounded paths in the tutorial-area region. It requires previously validated client asset files `/tmp/rhdemo-ground.bin`, `/tmp/rhdemo-region.bin`, `/tmp/rhdemo-index.bin` and `/tmp/rhdemo-data.bin`; the one-off acquisition script used in the original experiment was not retained. It does not verify those files itself, so do not treat them as current or use this driver without independently validating and preparing them.
 - `tools/headless-experiment/demos/door-ladder-demo.mjs` exercises a particular main-world door and ladder. See [15](15-main-world-interactions.md) for its prerequisites, observations and limitations.
 - `tools/headless-experiment/demos/move-a-to-b.mjs` is the explicit one-move baseline. `demos/programs/move-to-point.mjs` is the import-free action-only comparison, statically loaded by `demos/run-move-program.mjs`. Both require pre-acquired validated region assets, and the host is not a sandbox for generated scripts. See [16](16-move-a-to-b.md).
+- `tools/headless-experiment/demos/run-round-trip.mjs` runs a trusted two-action script in `normal` mode or the synthetic `invalidate` mode. Both modes require separately prepared and verified `/tmp/abmove-*.bin` assets and the documented starting position; see [17](17-multi-action-session.md).
 
 Some earlier one-off probes were deleted before the decision to retain scripts; their findings are preserved in the experiment notes, but the deleted drivers are not claimed as retained.
 
@@ -74,3 +75,4 @@ Run from the repository root so `.runehive/` is Git-ignored. Logs are local diag
 - [14 · Vanilla tutorial bypass](14-tutorial-bypass.md) — existing non-production option, effects, and risks
 - [15 · Main-world navigation interactions](15-main-world-interactions.md) — door and ladder experiments
 - [16 · One A-to-B movement script](16-move-a-to-b.md) — baseline before simplifying the script API
+- [17 · Multiple actions in one session](17-multi-action-session.md) — sequential actions and controlled invalidation
