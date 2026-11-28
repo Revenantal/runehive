@@ -221,6 +221,30 @@ test('location interaction sends option one and validates coordinates and id', a
   assert.equal(socket.writes.length, 3);
 });
 
+test('NPC options and dialogue continue use their own opcodes and validate input', async () => {
+  const socket = new FakeSocket([2, 0, 1]);
+  const result = await login({
+    account,
+    fetcher,
+    connect: () => socket,
+    random: () => Buffer.alloc(8),
+  });
+  result.sendNpcOption({ index: 300, option: 2 });
+  assert.deepEqual([...socket.writes[2]].slice(1), [1, 44]);
+  assert.equal(socket.writes[2][0], (233 + 243) & 255);
+  result.sendContinue(2000);
+  assert.deepEqual([...socket.writes[3]].slice(1), [7, 208]);
+  for (const bad of [
+    { index: -1, option: 1 },
+    { index: 1, option: 0 },
+    { index: 1, option: 6 },
+    { index: 0.5, option: 1 },
+  ])
+    assert.throws(() => result.sendNpcOption(bad), /INVALID_NPC_INTERACTION/);
+  assert.throws(() => result.sendContinue(65536), /INVALID_COMPONENT/);
+  assert.equal(socket.writes.length, 4);
+});
+
 test('location interaction selects the requested protocol option', async () => {
   const socket = new FakeSocket([2, 0, 1]);
   const result = await login({

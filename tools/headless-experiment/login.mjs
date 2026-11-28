@@ -251,6 +251,28 @@ export async function login({
       sendLocationOption1({ x, z, id }) {
         this.sendLocationOption({ x, z, id, option: 1 });
       },
+      /** Sends one of the five client-visible interaction options for an NPC index. */
+      sendNpcOption({ index, option }) {
+        const opcodes = [236, 233, 223, 147, 189];
+        if (
+          !Number.isInteger(index) ||
+          index < 0 ||
+          index > 0xffff ||
+          !Number.isInteger(option) ||
+          option < 1 ||
+          option > 5
+        )
+          throw new Error('INVALID_NPC_INTERACTION');
+        socket.write(
+          Buffer.from([(opcodes[option - 1] + cipher.nextInt) & 255, index >> 8, index & 255]),
+        );
+      },
+      /** Sends the dialogue-continue packet for a client-identified continue component. */
+      sendContinue(component) {
+        if (!Number.isInteger(component) || component < 0 || component > 0xffff)
+          throw new Error('INVALID_COMPONENT');
+        socket.write(Buffer.from([(72 + cipher.nextInt) & 255, component >> 8, component & 255]));
+      },
       /** Sends the protocol's ISAAC-encoded no-timeout opcode. */
       sendKeepalive() {
         socket.write(Buffer.from([(120 + cipher.nextInt) & 255]));
