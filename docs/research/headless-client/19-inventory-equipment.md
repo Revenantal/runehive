@@ -75,3 +75,11 @@ An agent will meet items, NPCs and objects whose options it has never seen. The 
 - **Item decoding gaps.** Descriptions are optional, so examine uses a fallback for items that have none.
 
 This addresses discovery, not meaning. The client can list and send any numbered option and report what changed; it cannot say what `Rub` or `Ring` should do. Whether the agent tries an unfamiliar option is an agent decision, and trying one can have effects (an option such as `Drop` removes an item), so a durable client should return the option list first and let policy decide.
+
+## Cross-check against a real client
+
+The owner examined items and NPCs in a real browser client. A Bronze sword showed "A razor sharp sword." and Hans showed "Servant of the Duke of Lumbridge." Both match, word for word, the text our decoders produce from the verified definitions. That is two data points (one item, one NPC), so examine is confirmed for items and NPCs; world objects use the same rule in the client source but were not cross-checked.
+
+## Recorded packets as fixtures
+
+`tests/fixtures/headless/` holds packets recorded from live sessions: the login inventory updates, and a full Hans conversation with a choice menu, plus the small set of interface components those packets refer to, copied from the client's interface data. The character's own name is masked in the recorded dialogue. `tests/cli/headless-fixtures.test.mjs` replays them through the inventory and dialogue observers and checks the result against what the live runs reported. This guards against the earlier risk that tests written from our own reading of the source agree with a decoder that misreads the real format. The capture is optional in the drivers: set `RUNEHIVE_CAPTURE_FILE` when running `inventory-identify.mjs` or `npc-talk.mjs`. Inventory slot positions in the fixture are those at the time of recording and are not asserted.
