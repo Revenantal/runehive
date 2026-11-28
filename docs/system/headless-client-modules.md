@@ -89,6 +89,10 @@ Inventory, equipment and dialogue may become separate modules. Observed inventor
 
 The server does not find routes for players. A request to chop a tree from a distance is refused ("I can't reach that!") whenever a straight approach is blocked, even though a path exists, and the same request succeeds when the client first sends its own route to the object using the operation-click walk, as the browser client does ([20](../research/headless-client/20-world-object-tree.md)). So acting on something is: plan a route to a tile beside it, send the route with the operation-click walk, then send the interaction request, and watch for the outcome. A refusal like this is evidence that the client did not send a route, never evidence that the object is unreachable. Where the approach lives (inside an interaction call, or in the script) and how long a leg may be are left for formal planning; a single packet carries at most 24 corner points of up to 127 tiles each.
 
+### What navigation has been shown to need
+
+From [21](../research/headless-client/21-cancelling-and-legs.md): a route is sent as corner points (one straight leg is one waypoint), at most 24 per packet, and legs up to 57 tiles were accepted at about 0.6 seconds per tile; position is read back from the server, since a blocked leg stops silently; a plain walk cancels an interaction in progress and is the way to stop one; a scene rebuild moves the loaded area without moving the player, so the tracker must keep absolute positions across it; and a refusal can be a message, or silence. Obstacles that change matter: a stump blocks, a fire and ashes do not, and the client definition's walking flag predicted both.
+
 ### Navigation
 
 **Owns:** moving the character.
