@@ -1,7 +1,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { hostname, tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -115,6 +115,9 @@ describe('runehive start/status/stop', () => {
     assert.equal(result.code, 1, result.out);
     assert.match(result.out, /port conflict during startup/);
     assert.doesNotMatch(result.out, /LostCity is ready/);
+    // The fixture exits before readiness; an unresolved lock now requires explicit cleanup.
+    rmSync(path.join(root, 'lostcity', '.runehive', 'lostcity.owner'), { force: true });
+    rmSync(path.join(root, 'lostcity', '.runehive', 'lostcity.pid'), { force: true });
   });
 
   test('refuses to stop a manually launched engine', async (t) => {
@@ -226,6 +229,31 @@ describe('runehive start/status/stop', () => {
     assert.match(stopped.out, /LostCity stopped/);
     assert.match(run(root, 'status').out, /lostcity: stopped/);
   });
+  test('preserves same-host and incomplete owner locks until manually resolved', () => {
+    const engine = path.join(root, 'lostcity', 'engine');
+    mkdirSync(engine, { recursive: true });
+    mkdirSync(path.join(root, 'lostcity', 'content'), { recursive: true });
+    writeFileSync(path.join(engine, 'package.json'), JSON.stringify({ name: 'fake-engine' }));
+    const state = path.join(root, 'lostcity', '.runehive');
+    mkdirSync(state, { recursive: true });
+    const lock = path.join(state, 'lostcity.owner');
+    for (const contents of [
+      JSON.stringify({ host: process.env.RUNEHIVE_HOST_ID || hostname(), pid: 1 }),
+      '',
+    ]) {
+      writeFileSync(lock, contents);
+      assert.match(run(root, 'status').out, /lostcity: locked/);
+      const start = run(root, 'start');
+      assert.equal(start.code, 1);
+      assert.match(start.out, /ownership is unresolved/);
+      const stop = run(root, 'stop');
+      assert.equal(stop.code, 1);
+      assert.match(stop.out, /ownership is unresolved/);
+      assert.equal(existsSync(lock), true);
+      rmSync(lock);
+    }
+  });
+
   test('refuses to start or stop while another machine holds the lock', () => {
     const engine = path.join(root, 'lostcity', 'engine');
     mkdirSync(engine, { recursive: true });

@@ -55,10 +55,8 @@ function claimOwner(p, pid) {
   } catch (error) {
     if (error.code !== 'EEXIST') throw error;
   }
-  const holder = readOwner(p);
-  if (holder && holder.host !== thisHost()) return holder;
-  writeFileSync(p.ownerFile, body); // a stale lock from this same machine
-  return null;
+  // A same-host or unreadable lock may belong to a concurrent starter, not a stale owner.
+  return readOwner(p) ?? { host: 'unknown' };
 }
 
 /** Returns the engine directory and the Git-ignored state files for this root. */
@@ -190,6 +188,8 @@ export function status({ root, destination }) {
       ? { state: 'remote', host: foreign.host, pid: foreign.pid, logFile: p.logFile }
       : { state: 'conflict', host: foreign.host, pid: service.pid, logFile: p.logFile };
   }
+  if (service.state === 'stopped' && existsSync(p.ownerFile))
+    return { state: 'locked', logFile: p.logFile };
   if (service.state === 'stopped') return { state: 'stopped', logFile: p.logFile };
   if (service.state === 'ambiguous') return { state: 'ambiguous', logFile: p.logFile };
   if (service.state === 'unmanaged')
@@ -274,6 +274,12 @@ export async function start({
     return 1;
   }
   const current = status({ root, destination });
+  if (current.state === 'locked') {
+    log(
+      'LostCity ownership is unresolved. Confirm no server or start is running before manually removing the owner lock.',
+    );
+    return 1;
+  }
   if (current.state === 'remote' || current.state === 'conflict') {
     log(
       `LostCity is already running on another machine (${current.host}). Only one server may run at a time. Stop it there first; nothing was started.`,
@@ -286,19 +292,19 @@ export async function start({
     return current.state === 'ready' ? 0 : 1;
   }
 
-  try {
-    initializeDatabase(p.engineDir, log);
-  } catch (error) {
-    log(`LostCity database setup failed: ${error.message}`);
-    return 1;
-  }
-
   mkdirSync(p.stateDir, { recursive: true });
   const holder = claimOwner(p, process.pid);
   if (holder) {
     log(
-      `LostCity is already running on another machine (${holder.host}). Only one server may run at a time. Stop it there first; nothing was started.`,
+      `LostCity owner lock already exists (holder: ${holder.host}). Confirm the owner is stopped before removing it; nothing was started.`,
     );
+    return 1;
+  }
+  try {
+    initializeDatabase(p.engineDir, log);
+  } catch (error) {
+    rmSync(p.ownerFile, { force: true });
+    log(`LostCity database setup failed: ${error.message}`);
     return 1;
   }
   rmSync(p.logFile, { force: true });
@@ -367,9 +373,14 @@ export async function stop({ root, destination, log = console.log, timeoutMs = S
     log('A matching LostCity process is unmanaged; inspect it manually. No process was signaled.');
     return 1;
   }
+  if (service.state === 'stopped' && existsSync(p.ownerFile)) {
+    log(
+      'LostCity ownership is unresolved. Confirm no server or start is running before manually removing the owner lock.',
+    );
+    return 1;
+  }
   if (service.state === 'stopped') {
     rmSync(p.pidFile, { force: true });
-    rmSync(p.ownerFile, { force: true });
     log('LostCity is not running (no matching process found).');
     return 0;
   }
