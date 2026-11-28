@@ -204,6 +204,14 @@ export async function login({
       kind: 'accepted',
       staffLevel: flags[0],
       socket,
+      /** Sends a pre-packed public message without interpreting its text. */
+      sendPublicChat(packed) {
+        if (!(packed instanceof Uint8Array) || packed.length < 1 || packed.length > 80)
+          throw new Error('INVALID_PUBLIC_CHAT');
+        socket.write(
+          Buffer.from([(253 + cipher.nextInt) & 255, packed.length + 2, 0, 0, ...packed]),
+        );
+      },
       /** Sends one ISAAC-encoded interface button click for the given component id. */
       sendButton(component) {
         if (!Number.isInteger(component) || component < 0 || component > 0xffff)

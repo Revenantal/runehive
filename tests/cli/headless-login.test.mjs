@@ -65,6 +65,22 @@ test('button clicks use the next cipher byte and a big-endian component id', asy
   assert.equal(socket.writes.length, 3);
 });
 
+test('public chat frames packed text and rejects invalid payloads without writing', async () => {
+  const socket = new FakeSocket([2, 0, 1]);
+  const result = await login({
+    account,
+    fetcher,
+    connect: () => socket,
+    random: () => Buffer.alloc(8),
+  });
+  assert.throws(() => result.sendPublicChat([]), /INVALID_PUBLIC_CHAT/);
+  assert.throws(() => result.sendPublicChat(new Uint8Array()), /INVALID_PUBLIC_CHAT/);
+  assert.throws(() => result.sendPublicChat(new Uint8Array(81)), /INVALID_PUBLIC_CHAT/);
+  assert.equal(socket.writes.length, 2);
+  result.sendPublicChat(Uint8Array.from([0x61, 0xbb, 0x40]));
+  assert.deepEqual([...socket.writes[2]], [240, 5, 0, 0, 0x61, 0xbb, 0x40]);
+});
+
 test('login returns a rejection without inventing its cause', async () => {
   const socket = new FakeSocket([3]);
   const result = await login({

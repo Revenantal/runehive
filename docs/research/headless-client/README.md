@@ -82,6 +82,7 @@ Run from the repository root so `.runehive/` is Git-ignored. Logs are local diag
 - [20 · World objects and ground items](20-world-object-tree.md) — chopping, dropping, picking up and lighting, and why the client must send its own route
 - [21 · Cancelling, long legs and obstacles](21-cancelling-and-legs.md) — cancelling, leg length, region crossing, blocking, refusal messages
 - [22 · Cross-region navigation](22-cross-region-navigation.md) — calculated two-region straight-route control and collision limitations
+- [23 · Public chat](23-public-chat.md) — browser-confirmed outgoing and headless-observed incoming control
 - `tools/headless-experiment/demos/inventory-identify.mjs` observes inventories read-only, and `demos/equip.mjs` wields or removes one named item and checks the result. Both need the directory written by `fetch-config-assets.py`. See [19](19-inventory-equipment.md).
 - `tools/headless-experiment/demos/validate-config.mjs` decodes every definition in the verified configuration and reports any record that does not parse. See [19](19-inventory-equipment.md).
 - `tools/headless-experiment/demos/survey-definitions.mjs` summarizes the option vocabulary and unusual text in the verified configuration, and `tools/headless-experiment/item-actions.mjs` builds the numbered action list and examine text. See [19](19-inventory-equipment.md).
