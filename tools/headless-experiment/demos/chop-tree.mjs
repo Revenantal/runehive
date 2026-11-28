@@ -18,7 +18,8 @@ import { LOGOUT_BUTTON_COMPONENT } from '../logout.mjs';
 // Usage: node chop-tree.mjs <config dir> <map dir> [exact object name, default Tree] [seconds, default 60] [skip, default 0] [approach]
 // skip chooses the nth-nearest routed object, for example to avoid one already cut down.
 // afterwards then-walk-through: once the tree is felled, walk three tiles straight across its tile
-// to test a stump. then-chop-again asks to chop the same, now felled, tree with its old id, as a
+// to test a stump. reconcile-stump projects the observed replacement and compares one step.
+// then-chop-again asks to chop the same, now felled, tree with its old id, as a
 // client with an out-of-date scene would.
 // approach request-first (default) asks first and walks only after a refusal; opclick sends the
 // planned route as an operation-click walk and then the request, as the browser client does.
@@ -104,12 +105,14 @@ const client = await login({
       const skillsBefore = JSON.stringify(state.state.skills);
       state.apply(packet);
       if (requested) capture.record(packet);
-      if (packet.name === 'REBUILD_NORMAL')
+      if (packet.name === 'REBUILD_NORMAL') {
+        if (requested) note({ type: 'rebuild' });
         zone = createZoneObserver({ ...state.state.region, level: 0, includeObjects: true });
+      }
       if (zone) {
         for (const event of zone.apply(packet)) {
           ground.apply(event);
-          if (requested && event.kind !== 'zone-reset') note({ type: 'zone', ...event });
+          if (requested) note({ type: 'zone', ...event });
         }
       }
       const inv = inventories.apply(packet);
@@ -301,6 +304,90 @@ if (client.kind !== 'accepted' || client.staffLevel !== 0) {
         : outcomeAt === null
           ? 'deadline'
           : 'outcome-evidence-seen';
+      if (afterwards === 'reconcile-stump' && outcomeAt !== null) {
+        const events = timeline.filter(
+          (e) =>
+            e.type === 'zone' && e.x === target.x && e.z === target.z && e.kind === 'add-change',
+        );
+        const change = events.at(-1);
+        const source = placed.filter(
+          (p) =>
+            p.id === target.id &&
+            p.level === me.level &&
+            p.x === target.x - regionX &&
+            p.z === target.z - regionZ &&
+            p.shape === change?.shape,
+        );
+        const changeIndex = timeline.indexOf(change);
+        const unsafe = timeline
+          .slice(changeIndex + 1)
+          .some(
+            (e) =>
+              e.type === 'rebuild' ||
+              (e.type === 'zone' &&
+                e.level === me.level &&
+                ((e.kind === 'zone-reset' &&
+                  e.x <= target.x &&
+                  target.x < e.x + 8 &&
+                  e.z <= target.z &&
+                  target.z < e.z + 8) ||
+                  (e.x === target.x &&
+                    e.z === target.z &&
+                    e.kind !== 'object-add' &&
+                    e.kind !== 'object-remove' &&
+                    e.kind !== 'object-count' &&
+                    e.kind !== 'object-reveal'))),
+          );
+        const position = state.state.position;
+        const adjacent =
+          position && Math.abs(position.x - target.x) + Math.abs(position.z - target.z) === 1;
+        const swung = timeline.some(
+          (e) => e.type === 'message' && e.text === 'You swing your axe at the tree.',
+        );
+        result.reconciliation = { outcome: 'unknown', reason: 'preconditions-not-met' };
+        if (!broken && change && source.length === 1 && !unsafe && adjacent && swung) {
+          const replacement = { ...source[0], id: change.id, rotation: change.rotation };
+          const projectedDefinitions = new Map(definitions);
+          projectedDefinitions.set(change.id, decodeLocationDefinition(locIdx, locDat, change.id));
+          const projected = placed.map((p) => (p === source[0] ? replacement : p));
+          const projectedGrid = buildConservativeGrid(
+            decodeTerrain(read(mapDir, 'ground.bin')),
+            projected,
+            projectedDefinitions,
+            me.level,
+          );
+          const predictedBlocked = Boolean(
+            projectedGrid.blocked[(target.x - regionX) * 64 + target.z - regionZ],
+          );
+          result.reconciliation = {
+            outcome: 'unknown',
+            reason: 'step-not-requested',
+            change,
+            predictedBlocked,
+            from: { ...position },
+          };
+          if (predictedBlocked) {
+            client.sendWalk({
+              startX: position.x,
+              startZ: position.z,
+              steps: [[target.x - position.x, target.z - position.z]],
+            });
+            await sleep(6000);
+            result.reconciliation.final = state.state.position ? { ...state.state.position } : null;
+            result.reconciliation.outcome =
+              !broken &&
+              state.state.position?.x === target.x &&
+              state.state.position?.z === target.z
+                ? 'entered-target'
+                : 'unknown';
+            result.reconciliation.reason = broken
+              ? 'observation-broken'
+              : result.reconciliation.outcome === 'entered-target'
+                ? 'observed-arrival'
+                : 'no-observed-arrival';
+          }
+        }
+      }
       if (afterwards === 'then-chop-again' && outcomeAt !== null) {
         await sleep(1500);
         const mark = timeline.length;
